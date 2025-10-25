@@ -1,4 +1,4 @@
-# 🧠 AlertaMente API: Plataforma de Apoio à Saúde Mental e Neurodivergência (v1.0)
+# 🧠 AlertaMente API: Plataforma de Apoio à Saúde Mental, Neurodivergência e a Saúde dos Idosos (v1.0)
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Planejamento%20e%20Arquitetura%20Finalizados-success" alt="Status do Projeto">
