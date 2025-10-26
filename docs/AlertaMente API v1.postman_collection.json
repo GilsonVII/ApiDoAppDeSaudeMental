@@ -1,0 +1,759 @@
+{
+	"info": {
+		"_postman_id": "c7ddaad2-7ef1-4757-b84b-e01e984e295f",
+		"name": "AlertaMente API v1",
+		"description": "## 📄 Visão Geral da API AlertaMente (v1.0 - Estrutura Final)\n\nEsta Collection contém o mapeamento de **21 Endpoints** da API AlertaMente, refletindo a arquitetura final do projeto, focada em segurança, escalabilidade e na gestão avançada de rotina.\n\n---\n\n### 1\\. Escopo Principal\n\nO projeto se baseia em uma arquitetura de **Evento Recorrente e Log de Ocorrências**, atendendo aos seguintes pilares:\n\n- **Agenda Compartilhada & Recorrência:** Eventos são salvos como **Templates** (`data_inicio`, `data_fim`). O sistema registra o status `concluído` por ocorrência diária (log), permitindo o agendamento por Contatos de Emergência.\n    \n- **Autenticação Única:** Registro universal para todos os usuários (Pacientes e Monitores).\n    \n- **Módulo de Emergência:** Botão de Pânico (`/panic/trigger`) de alta performance, com log de eventos e gestão de Contatos (relação N:M).\n    \n- **Arquitetura:** Implementação da camada **Business Logic** (`src/business/`) para isolar regras complexas.\n    \n\n### 2\\. Requisitos Não Funcionais (RNF)\n\nOs requisitos de qualidade da API são a base para o desenvolvimento:\n\n- **RNF1 (Segurança):** Uso obrigatório de **HTTPS** e **Hashing** (`Bcrypt`) para senhas.\n    \n- **RNF2 (Performance):** Resposta do endpoint de Pânico (`/panic/trigger`) em menos de **500ms**.\n    \n- **RNF4 (Escalabilidade):** Uso de arquitetura REST _Stateless_ para suportar crescimento.\n    \n\n---\n\n### 3\\. Guia de Testes (Fluxo de 21 Endpoints)\n\n**Variável de Ambiente:** Use `{{base_url}}` configurada para `http://localhost:3000/v1`.\n\nO fluxo de teste deve cobrir os novos modelos de dados:\n\n1. **1.1 Registrar Usuário:** _(Para criar os IDs de Paciente e Contato)_\n    \n2. **1.2 Fazer Login:** _(Copiar o Token)_\n    \n3. **1.6 Adicionar Contato (N:M):** _Cria a relação entre Paciente (1) e Contato (2)._\n    \n4. **3.1 Criar Template Recorrente:** _Agenda um remédio diário (cria o Template)._\n    \n5. **3.5 Listar Ocorrências Diárias:** _Verifica se o log de execução do evento recorrente foi criado._\n    \n6. **3.6 Marcar Ocorrência (Status Concluído):** _Atualiza o status diário na tabela de log._\"",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44584339",
+		"_collection_link": "https://gill-5178482.postman.co/workspace/59f68b3c-0a02-4714-89a4-58f8f8b39462/collection/44584339-c7ddaad2-7ef1-4757-b84b-e01e984e295f?action=share&source=collection_link&creator=44584339"
+	},
+	"item": [
+		{
+			"name": "1. 🔐 Autenticação e Usuário",
+			"item": [
+				{
+					"name": "1.1. Contatos de Emergência (N:M)",
+					"item": [
+						{
+							"name": "Adicionar Contato (N:M)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id_paciente\": 1, \r\n    \"id_contato\": 2, \r\n    \"whatsapp_numero\": \"11999998888\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/users/contact",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"users",
+										"contact"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar Meus Contatos",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/users/contacts",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"users",
+										"contacts"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Deletar contato",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/users/contact/:id_relacao",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"users",
+										"contact",
+										":id_relacao"
+									],
+									"variable": [
+										{
+											"key": "id_relacao",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Registrar Usuário",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"user@mindflow.com\", \r\n    \"password\": \"senhaforte\", \r\n    \"name\": \"Usuário Teste\", \r\n    \"is_emergency_contact\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Fazer Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"user@mindflow.com\", \r\n    \"password\": \"senhaforte\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ver Perfil",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Redefinir Senha",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"paciente_para_resetar@exemplo.com\",\r\n    \"new_password\": \"SenhaNovaEmuitoForte123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/password/reset",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"password",
+								"reset"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Meu Perfil",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Nome Atualizado\", \r\n    \"is_patient\": false, \r\n    \"is_contato_emergencia\": true \r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Editar Template Recorrente",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"titulo\": \"Nova Consulta Semanal (Atualizado)\", \r\n    \"descricao\": \"Lembrete de terapia por videochamada\",\r\n    \"data_fim\": \"2026-06-30\" \r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/agenda/template/:id_evento",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"agenda",
+								"template",
+								":id_evento"
+							],
+							"variable": [
+								{
+									"key": "id_evento",
+									"value": "123"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. 🚨 Módulo de Emergência",
+			"item": [
+				{
+					"name": "Acionar Pânico",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"latitude\": -23.5505, \r\n    \"longitude\": -46.6333\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/panic/trigger",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"panic",
+								"trigger"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Log de Pânico",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/panic/logs/:id_paciente",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"panic",
+								"logs",
+								":id_paciente"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "id_paciente",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. 📅 Agenda Compartilhada",
+			"item": [
+				{
+					"name": "Criar Template Recorrente",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Criar Template Recorrente\",\r\n    \"request\": {\r\n        \"auth\": {\r\n            \"type\": \"bearer\",\r\n            \"bearer\": [\r\n                {\r\n                    \"key\": \"token\",\r\n                    \"value\": \"<COPIE_O_TOKEN_DO_LOGIN>\",\r\n                    \"type\": \"string\"\r\n                }\r\n            ]\r\n        },\r\n        \"method\": \"POST\",\r\n        \"header\": [],\r\n        \"body\": {\r\n            \"mode\": \"raw\",\r\n            \"raw\": \"{\\r\\n    \\\"id_paciente\\\": 1, \\r\\n    \\\"titulo\\\": \\\"Remédio Diário TDAH\\\", \\r\\n    \\\"descricao\\\": \\\"Tomar o remédio às 9h\\\", \\r\\n    \\\"tipo\\\": \\\"MEDICAMENTO\\\",\\r\\n    \\\"data_hora\\\": \\\"09:00:00Z\\\",\\r\\n    \\\"data_inicio\\\": \\\"2025-11-01\\\",\\r\\n    \\\"data_fim\\\": \\\"2025-12-31\\\"\\r\\n}\",\r\n            \"options\": {\r\n                \"raw\": {\r\n                    \"language\": \"json\"\r\n                }\r\n            }\r\n        },\r\n        \"url\": {\r\n            \"raw\": \"{{base_url}}/agenda/template\",\r\n            \"host\": [\r\n                \"{{base_url}}\"\r\n            ],\r\n            \"path\": [\r\n                \"agenda\",\r\n                \"template\"\r\n            ]\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/agenda/template",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"agenda",
+								"template"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Template",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Deletar Template (por ID)\",\r\n    \"request\": {\r\n        \"auth\": {\r\n            \"type\": \"bearer\",\r\n            \"bearer\": [\r\n                {\r\n                    \"key\": \"token\",\r\n                    \"value\": \"<COPIE_O_TOKEN_DO_LOGIN>\",\r\n                    \"type\": \"string\"\r\n                }\r\n            ]\r\n        },\r\n        \"method\": \"DELETE\",\r\n        \"header\": [],\r\n        \"url\": {\r\n            \"raw\": \"{{base_url}}/agenda/template/123\",\r\n            \"host\": [\r\n                \"{{base_url}}\"\r\n            ],\r\n            \"path\": [\r\n                \"agenda\",\r\n                \"template\",\r\n                \"123\"\r\n            ],\r\n            \"variable\": [\r\n                {\r\n                    \"key\": \"id_evento\",\r\n                    \"value\": \"123\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/agenda/template/:id_evento",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"agenda",
+								"template",
+								":id_evento"
+							],
+							"variable": [
+								{
+									"key": "id_evento",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Templates",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Listar Templates de Agenda (by Paciente ID)\",\r\n    \"request\": {\r\n        \"auth\": {\r\n            \"type\": \"bearer\",\r\n            \"bearer\": [\r\n                {\r\n                    \"key\": \"token\",\r\n                    \"value\": \"<COPIE_O_TOKEN_DO_LOGIN>\",\r\n                    \"type\": \"string\"\r\n                }\r\n            ]\r\n        },\r\n        \"method\": \"GET\",\r\n        \"header\": [],\r\n        \"url\": {\r\n            \"raw\": \"{{base_url}}/agenda/paciente/1\",\r\n            \"host\": [\r\n                \"{{base_url}}\"\r\n            ],\r\n            \"path\": [\r\n                \"agenda\",\r\n                \"paciente\",\r\n                \"1\"\r\n            ],\r\n            \"variable\": [\r\n                {\r\n                    \"key\": \"id_paciente\",\r\n                    \"value\": \"1\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/agenda/paciente/:id_paciente",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"agenda",
+								"paciente",
+								":id_paciente"
+							],
+							"variable": [
+								{
+									"key": "id_paciente",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Ocorrências",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Listar Ocorrências (Log Diário) - by Paciente ID\",\r\n    \"request\": {\r\n        \"auth\": {\r\n            \"type\": \"bearer\",\r\n            \"bearer\": [\r\n                {\r\n                    \"key\": \"token\",\r\n                    \"value\": \"<COPIE_O_TOKEN_DO_LOGIN>\",\r\n                    \"type\": \"string\"\r\n                }\r\n            ]\r\n        },\r\n        \"method\": \"GET\",\r\n        \"header\": [],\r\n        \"url\": {\r\n            \"raw\": \"{{base_url}}/agenda/ocorrencias/1\",\r\n            \"host\": [\r\n                \"{{base_url}}\"\r\n            ],\r\n            \"path\": [\r\n                \"agenda\",\r\n                \"ocorrencias\",\r\n                \"1\"\r\n            ],\r\n            \"variable\": [\r\n                {\r\n                    \"key\": \"id_paciente\",\r\n                    \"value\": \"1\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/agenda/ocorrencias/:id_paciente",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"agenda",
+								"ocorrencias",
+								":id_paciente"
+							],
+							"variable": [
+								{
+									"key": "id_paciente",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ocorrências por Data",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Listar Ocorrências por Data Específica\",\r\n    \"request\": {\r\n        \"auth\": {\r\n            \"type\": \"bearer\",\r\n            \"bearer\": [\r\n                {\r\n                    \"key\": \"token\",\r\n                    \"value\": \"<COPIE_O_TOKEN_DO_LOGIN>\",\r\n                    \"type\": \"string\"\r\n                }\r\n            ]\r\n        },\r\n        \"method\": \"GET\",\r\n        \"header\": [],\r\n        \"url\": {\r\n            \"raw\": \"{{base_url}}/agenda/ocorrencias/1/data/2025-11-05\",\r\n            \"host\": [\r\n                \"{{base_url}}\"\r\n            ],\r\n            \"path\": [\r\n                \"agenda\",\r\n                \"ocorrencias\",\r\n                \"1\",\r\n                \"data\",\r\n                \"2025-11-05\"\r\n            ],\r\n            \"variable\": [\r\n                {\r\n                    \"key\": \"id_paciente\",\r\n                    \"value\": \"1\"\r\n                },\r\n                {\r\n                    \"key\": \"data\",\r\n                    \"value\": \"2025-11-05\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/agenda/ocorrencias/:id_paciente/data/:data",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"agenda",
+								"ocorrencias",
+								":id_paciente",
+								"data",
+								":data"
+							],
+							"variable": [
+								{
+									"key": "id_paciente",
+									"value": ""
+								},
+								{
+									"key": "data",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Marcar Ocorrência",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Marcar Ocorrência (Status Concluído)\",\r\n    \"request\": {\r\n        \"auth\": {\r\n            \"type\": \"bearer\",\r\n            \"bearer\": [\r\n                {\r\n                    \"key\": \"token\",\r\n                    \"value\": \"<COPIE_O_TOKEN_DO_LOGIN>\",\r\n                    \"type\": \"string\"\r\n                }\r\n            ]\r\n        },\r\n        \"method\": \"PATCH\",\r\n        \"header\": [],\r\n        \"body\": {\r\n            \"mode\": \"raw\",\r\n            \"raw\": \"{\\r\\n    \\\"status_concluido\\\": true\\r\\n}\",\r\n            \"options\": {\r\n                \"raw\": {\r\n                    \"language\": \"json\"\r\n                }\r\n            }\r\n        },\r\n        \"url\": {\r\n            \"raw\": \"{{base_url}}/agenda/ocorrencias/123/status\",\r\n            \"host\": [\r\n                \"{{base_url}}\"\r\n            ],\r\n            \"path\": [\r\n                \"agenda\",\r\n                \"ocorrencias\",\r\n                \"123\",\r\n                \"status\"\r\n            ],\r\n            \"variable\": [\r\n                {\r\n                    \"key\": \"id_ocorrencia\",\r\n                    \"value\": \"123\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/agenda/ocorrencias/:id_ocorrencia/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"agenda",
+								"ocorrencias",
+								":id_ocorrencia",
+								"status"
+							],
+							"variable": [
+								{
+									"key": "id_ocorrencia",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🔔 Pasta: Pop-ups de Rotina",
+			"item": [
+				{
+					"name": "Pop-up geral",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "<COPIE_O_TOKEN_DO_LOGIN>",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/pop-ups/:tipo",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pop-ups",
+								":tipo"
+							],
+							"variable": [
+								{
+									"key": "tipo",
+									"value": "ganeral"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": ""
+		}
+	]
+}
