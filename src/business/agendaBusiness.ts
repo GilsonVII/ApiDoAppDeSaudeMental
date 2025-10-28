@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import * as agendaRepository from '../database/repositories/agendaRepository';
 import { IAgendaEvent, AgendaEventType } from '../models/AgendaEventModel';
 
@@ -30,3 +31,33 @@ export const createAgendaTemplate = async (creatorId: number, payload: AgendaTem
 
     return agendaRepository.createAgendaTemplate(templateToSave);
 };
+=======
+import * as AgendaEventModel from '../models/AgendaEventModel';
+
+export interface AgendaTemplatePayload {
+  title: string;
+  description?: string;
+  startAt: string | Date;
+  durationMinutes?: number;
+  recurrence?: any;
+  [key: string]: any;
+}
+
+export async function createAgendaTemplate(db: any, userId: string, payload: AgendaTemplatePayload) {
+  if (!payload || !payload.title) throw new Error('Invalid: title is required');
+  if (!payload.startAt) throw new Error('Invalid: startAt is required');
+
+  const templateToSave = {
+    userId,
+    title: payload.title,
+    description: payload.description || '',
+    startAt: (typeof payload.startAt === 'string') ? new Date(payload.startAt) : payload.startAt,
+    durationMinutes: payload.durationMinutes || null,
+    recurrence: payload.recurrence || null,
+    createdAt: new Date()
+  };
+
+  const template = await AgendaEventModel.createTemplate(db, templateToSave);
+  return template;
+}
+>>>>>>> d46311185f1e2c568922bcf8f6d646c9366a9123

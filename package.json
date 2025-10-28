@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^6.18.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -23,10 +24,15 @@
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
+<<<<<<< HEAD
     "@types/express": "^5.0.3",
+=======
+    "@types/express": "^5.0.5",
+>>>>>>> d46311185f1e2c568922bcf8f6d646c9366a9123
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.7.2",
     "nodemon": "^3.1.10",
+    "prisma": "^6.18.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }

@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import authRouter from './authRoutes';
+<<<<<<< HEAD
 import userRouter from './userRoutes';       
 import emergencyRouter from './emergencyRoutes'; 
 import agendaRouter from './agendaRoutes';    
+=======
+>>>>>>> d46311185f1e2c568922bcf8f6d646c9366a9123
 
 const router = Router();
 
