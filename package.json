@@ -21,8 +21,10 @@
     "mysql2": "^3.15.3"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.7.2",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
