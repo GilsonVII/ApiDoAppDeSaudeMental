@@ -1,5 +1,5 @@
 export interface AgendaTemplateRecord {
-  id?: any;
+  id: number;
   userId: string;
   title: string;
   description?: string;
