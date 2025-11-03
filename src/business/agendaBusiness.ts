@@ -1,5 +1,6 @@
 import * as agendaRepository from '../database/repositories/agendaRepository';
-import { IAgendaEvent, AgendaEventType } from '../models/AgendaEventModel'; 
+import * as contactRepository from '../database/repositories/contactRepository';
+import { IAgendaEvent, AgendaEventType, IAgendaOccurrence } from '../models/AgendaEventModel'; 
 
 export interface AgendaTemplatePayload {
     id_paciente: number;
@@ -10,6 +11,14 @@ export interface AgendaTemplatePayload {
     data_fim?: string | null; 
     tipo: AgendaEventType;
 }
+
+const checkPermission = async (loggedInUserId: number, patientId: number): Promise<boolean> => {
+    if (loggedInUserId === patientId) {
+        return true; 
+    }
+    const contacts: any[] = await contactRepository.findContactsByPatientId(patientId);
+    return contacts.some(contact => contact.id_contato === loggedInUserId);
+};
 
 export const createAgendaTemplate = async (creatorId: number, payload: AgendaTemplatePayload): Promise<number | null> => {
     
@@ -29,4 +38,26 @@ export const createAgendaTemplate = async (creatorId: number, payload: AgendaTem
     };
 
     return agendaRepository.createAgendaTemplate(templateToSave);
+};
+
+export const listOccurrences = async (loggedInUserId: number, patientId: number) => {
+    const hasPermission = await checkPermission(loggedInUserId, patientId);
+    if (!hasPermission) {
+        throw new Error('Permissão negada para listar ocorrências.');
+    }
+    return agendaRepository.findOccurrencesByPatientId(patientId);
+};
+
+export const updateOccurrenceStatus = async (loggedInUserId: number, occurrenceId: number, status: boolean): Promise<IAgendaOccurrence> => {
+    const occurrence = await agendaRepository.findOccurrenceById(occurrenceId);
+    if (!occurrence) {
+        throw new Error('Ocorrência não encontrada.');
+    }
+    
+    const hasPermission = await checkPermission(loggedInUserId, occurrence.usuario_id);
+    if (!hasPermission) {
+        throw new Error('Permissão negada para atualizar esta ocorrência.');
+    }
+    
+    return agendaRepository.updateOccurrenceStatus(occurrenceId, status);
 };

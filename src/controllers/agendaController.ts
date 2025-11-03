@@ -31,3 +31,53 @@ export const handleCreateAgendaTemplate = async (req: Request, res: Response) =>
         return res.status(500).json({ error: 'Erro interno ao criar template de agenda.' });
     }
 };
+export const handleListOccurrences = async (req: Request, res: Response) => {
+    try {
+        const loggedInUserId = req.user?.id;
+        const patientId = parseInt(req.params.id_paciente, 10);
+
+        if (!loggedInUserId) {
+            return res.status(401).json({ error: 'Usuário não autenticado.' });
+        }
+        if (isNaN(patientId)) {
+            return res.status(400).json({ error: 'ID do paciente inválido.' });
+        }
+
+        const occurrences = await agendaBusiness.listOccurrences(loggedInUserId, patientId);
+        return res.status(200).json(occurrences);
+    } catch (error: any) {
+        console.error('Erro ao listar ocorrências:', error);
+        if (error.message.includes('Permissão negada')) {
+            return res.status(403).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao listar ocorrências.' });
+    }
+};
+
+export const handleUpdateOccurrenceStatus = async (req: Request, res: Response) => {
+    try {
+        const loggedInUserId = req.user?.id;
+        const occurrenceId = parseInt(req.params.id_ocorrencia, 10);
+        const { status_concluido } = req.body;
+
+        if (!loggedInUserId) {
+            return res.status(401).json({ error: 'Usuário não autenticado.' });
+        }
+        if (isNaN(occurrenceId)) {
+            return res.status(400).json({ error: 'ID da ocorrência inválido.' });
+        }
+        if (typeof status_concluido !== 'boolean') {
+            return res.status(400).json({ error: 'Campo status_concluido (boolean) é obrigatório.' });
+        }
+
+        const updatedOccurrence = await agendaBusiness.updateOccurrenceStatus(loggedInUserId, occurrenceId, status_concluido);
+        return res.status(200).json(updatedOccurrence);
+    } catch (error: any) {
+        console.error('Erro ao atualizar status da ocorrência:', error);
+        if (error.message.includes('Permissão negada') || error.message.includes('Ocorrência não encontrada')) {
+            return res.status(404).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao atualizar status.' });
+    }
+};
+
