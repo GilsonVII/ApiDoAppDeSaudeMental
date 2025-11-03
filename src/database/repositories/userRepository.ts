@@ -1,5 +1,5 @@
 import pool from '../connection';
-import { IUser } from '../../models/UserModels'; 
+import { IUser } from '../../models/UserModel'; 
 
 export const createUser = async (userData: Omit<IUser, 'id_usuario'>): Promise<number | null> => {
     const { email, senha_hash, name, is_patient, is_emergency_contact } = userData;

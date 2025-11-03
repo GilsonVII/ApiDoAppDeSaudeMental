@@ -14,7 +14,7 @@ export interface IAgendaEvent {
 
 export interface IAgendaOccurrence {
     id_ocorrencia: number;
-    id_evento: number;
+    id_evento: number; 
     usuario_id: number; 
     data_ocorrencia: string; 
     status_concluido: boolean;

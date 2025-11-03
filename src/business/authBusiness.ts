@@ -1,7 +1,7 @@
 import * as userRepository from '../database/repositories/userRepository';
 import { generateToken } from '../utils/jwt';
 import { hashPassword, comparePassword } from '../utils/bcrypt';
-import { IUser } from '../models/UserModels';
+import { IUser } from '../models/UserModel';
 
 export const registerNewUser = async (userData: Omit<IUser, 'id_usuario' | 'senha_hash'> & { password: string }): Promise<number | null> => {
 

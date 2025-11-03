@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as panicBusiness from '../business/panicBusiness';
 
+
 export const handleTriggerPanic = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;

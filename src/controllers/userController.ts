@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as userBusiness from '../business/userBusiness';
 
+
 export const handleGetMyProfile = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id; 

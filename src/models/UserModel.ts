@@ -1,21 +1,8 @@
-export interface UserRecord {
-  id: number;
-  name: string;
-  email: string;
-  role?: string;
-  [key: string]: any;
-}
-
-export async function getById(db: any, userId: string) {
-  if (db && typeof db.collection === 'function') {
-    const user = await db.collection('users').findOne({ _id: userId }) || await db.collection('users').findOne({ id: userId });
-    return user;
-  }
-
-  if (typeof db === 'function') {
-    const user = await db('users').where({ id: userId }).first();
-    return user;
-  }
-
-  return null;
+export interface IUser {
+    id_usuario: number;
+    email: string;
+    senha_hash: string;
+    name: string;
+    is_patient: boolean;
+    is_emergency_contact: boolean;
 }

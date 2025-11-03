@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import * as agendaBusiness from '../business/agendaBusiness';
 import { AgendaEventType } from '../models/AgendaEventModel'; 
 
+
 export const handleCreateAgendaTemplate = async (req: Request, res: Response) => {
     try {
         const creatorId = req.user?.id; 

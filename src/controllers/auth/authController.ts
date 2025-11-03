@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as authBusiness from '../../business/authBusiness';
 
+
 export const handleRegister = async (req: Request, res: Response) => {
     try {
         const { email, password, name, is_patient, is_emergency_contact } = req.body;
