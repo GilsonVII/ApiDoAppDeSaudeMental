@@ -27,3 +27,10 @@ export const addContact = async (loggedInUserId: number, payload: Omit<IContactR
 export const listMyContacts = async (loggedInUserId: number) => {
     return contactRepository.findContactsByPatientId(loggedInUserId);
 };
+
+export const updateFcmToken = async (userId: number, fcmToken: string) => {
+    if (!fcmToken) {
+        throw new Error('Token FCM não pode ser vazio.');
+    }
+    return userRepository.updateFcmToken(userId, fcmToken);
+};

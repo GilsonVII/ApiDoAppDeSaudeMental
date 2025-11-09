@@ -47,3 +47,31 @@ export const updateOccurrenceStatus = async (occurrenceId: number, status: boole
         throw new Error('Erro ao atualizar status da ocorrência.');
     }
 };
+
+export const findPendingOccurrencesForCron = async (now: Date): Promise<any[]> => {
+    const currentDay = now.toISOString().split('T')[0];
+    const currentHour = now.toTimeString().split(' ')[0].substring(0, 5);
+    const sql = `
+        SELECT 
+            o.id_ocorrencia, 
+            e.titulo, 
+            e.descricao, 
+            u.fcm_token
+        FROM OCORRENCIA_AGENDA o
+        JOIN EVENTO_AGENDA e ON o.id_evento = e.id_evento
+        JOIN USUARIO u ON o.usuario_id = u.id_usuario
+        WHERE 
+            o.data_ocorrencia = ? 
+            AND o.status_concluido = FALSE
+            AND TIME_FORMAT(e.data_hora, '%H:%i') = ?
+            AND u.fcm_token IS NOT NULL;
+    `;
+    
+    try {
+        const [rows]: any = await pool.query(sql, [currentDay, currentHour]);
+        return rows;
+    } catch (error) {
+        console.error("Erro ao buscar ocorrências para o cron:", error);
+        return [];
+    }
+};

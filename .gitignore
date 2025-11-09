@@ -5,3 +5,4 @@ npm-debug.log
 .env
 /dist
 /build
+src/config/firebase-service-account.json

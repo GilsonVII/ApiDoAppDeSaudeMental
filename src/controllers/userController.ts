@@ -56,3 +56,24 @@ export const handleListContacts = async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'Erro interno ao listar contatos.' });
     }
 };
+
+export const handleUpdateFcmToken = async (req: Request, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        const { fcm_token } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({ error: 'Usuário não autenticado.' });
+        }
+        if (!fcm_token) {
+            return res.status(400).json({ error: 'fcm_token é obrigatório.' });
+        }
+
+        await userBusiness.updateFcmToken(userId, fcm_token);
+        return res.status(200).json({ message: 'Token de notificação salvo.' });
+
+    } catch (error: any) {
+        console.error('Erro ao salvar FcmToken:', error);
+        return res.status(500).json({ error: 'Erro interno ao salvar token.' });
+    }
+};

@@ -5,4 +5,5 @@ export interface IUser {
     name: string;
     is_patient: boolean;
     is_emergency_contact: boolean;
+    fcm_token?: string | null;
 }

@@ -50,3 +50,14 @@ export const findUserById = async (userId: number): Promise<Omit<IUser, 'senha_h
         throw new Error('Erro ao buscar usuário no banco de dados.');
     }
 };
+
+export const updateFcmToken = async (userId: number, fcmToken: string): Promise<boolean> => {
+    const sql = 'UPDATE USUARIO SET fcm_token = ? WHERE id_usuario = ?';
+    try {
+        const [result]: any = await pool.query(sql, [fcmToken, userId]);
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error("Erro ao salvar FcmToken:", error);
+        throw new Error('Erro ao salvar token de notificação.');
+    }
+};
