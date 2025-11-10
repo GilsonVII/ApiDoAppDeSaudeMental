@@ -3,7 +3,8 @@ import * as agendaRepository from './database/repositories/agendaRepository';
 import { sendPushNotification } from './utils/notificationService';
 
 const checkPendingOccurrences = async () => {
-    console.log(`[Cron Job] Rodando verificação de ocorrências pendentes... (Hora: ${new Date().toLocaleTimeString()})`);
+    console.log(`[Cron Job] Rodando verificação 
+        de ocorrências pendentes... (Hora: ${new Date().toLocaleTimeString()})`);
     
     const now = new Date();
     
