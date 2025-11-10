@@ -75,3 +75,28 @@ export const findPendingOccurrencesForCron = async (now: Date): Promise<any[]> =
         return [];
     }
 };
+
+type OccurrenceInput = Omit<IAgendaOccurrence, 'id_ocorrencia'>;
+
+export const createOccurrencesBatch = async (occurrences: OccurrenceInput[]): Promise<boolean> => {
+    if (occurrences.length === 0) {
+        return true;
+    }
+
+    const sql = 'INSERT INTO OCORRENCIA_AGENDA (id_evento, usuario_id, data_ocorrencia, status_concluido) VALUES ?';
+    
+    const values = occurrences.map(occ => [
+        occ.id_evento,
+        occ.usuario_id,
+        occ.data_ocorrencia,
+        occ.status_concluido
+    ]);
+
+    try {
+        await pool.query(sql, [values]); 
+        return true;
+    } catch (error) {
+        console.error("Erro no batch insert de ocorrências:", error);
+        throw new Error('Erro ao salvar ocorrências da agenda.');
+    }
+};
