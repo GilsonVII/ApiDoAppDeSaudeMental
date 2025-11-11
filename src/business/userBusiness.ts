@@ -1,7 +1,7 @@
 import * as userRepository from '../database/repositories/userRepository';
 import * as contactRepository from '../database/repositories/contactRepository';
 import { IUser } from '../models/UserModel'; 
-import { IContactRelation } from '../models/contactModel';
+import { IContactRelation } from '../models/ContactModel';
 
 export const getProfile = async (userId: number): Promise<Omit<IUser, 'senha_hash'> | null> => {
     const user = await userRepository.findUserById(userId);

@@ -1,5 +1,5 @@
 import pool from '../connection';
-import { IContactRelation } from '../../models/contactModel';
+import { IContactRelation } from '../../models/ContactModel';
 
 type ContactInput = Omit<IContactRelation, 'id_relacao'>;
 type ContactSummary = {
