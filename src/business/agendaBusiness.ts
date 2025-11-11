@@ -25,14 +25,6 @@ const checkPermission = async (loggedInUserId: number, patientId: number): Promi
     }
 };
 
-export const listTemplatesForPatient = async (loggedInUserId: number, patientId: number) => {
-    const hasPermission = await checkPermission(loggedInUserId, patientId);
-    if (!hasPermission) {
-        throw new Error('Permissão negada para listar templates.');
-    }
-    return agendaRepository.findTemplatesByPatientId(patientId);
-};
-
 export const listOccurrences = async (loggedInUserId: number, patientId: number) => {
     const hasPermission = await checkPermission(loggedInUserId, patientId);
     if (!hasPermission) {
