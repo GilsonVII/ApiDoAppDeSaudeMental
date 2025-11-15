@@ -34,3 +34,22 @@ export const updateFcmToken = async (userId: number, fcmToken: string) => {
     }
     return userRepository.updateFcmToken(userId, fcmToken);
 };
+
+export const updateProfile = async (userId: number, name: string, isPatient: boolean, isEmergencyContact: boolean) => {
+    if (!name || typeof isPatient !== 'boolean' || typeof isEmergencyContact !== 'boolean') {
+        throw new Error('Dados inválidos: nome, is_patient e is_emergency_contact são obrigatórios.');
+    }
+    return userRepository.updateUserProfile(userId, name, isPatient, isEmergencyContact);
+};
+
+export const searchUserByEmail = async (email: string) => {
+    if (!email) {
+        throw new Error('E-mail é obrigatório para a busca.');
+    }
+    const user = await userRepository.findUserByEmail(email);
+    if (!user) {
+        return null;
+    }
+    const { senha_hash, ...profile } = user;
+    return profile;
+};

@@ -61,3 +61,25 @@ export const updateFcmToken = async (userId: number, fcmToken: string): Promise<
         throw new Error('Erro ao salvar token de notificação.');
     }
 };
+
+export const updateUserProfile = async (userId: number, name: string, isPatient: boolean, isEmergencyContact: boolean): Promise<boolean> => {
+    const sql = 'UPDATE USUARIO SET nome = ?, is_paciente = ?, is_contato_emergencia = ? WHERE id_usuario = ?';
+    try {
+        const [result]: any = await pool.query(sql, [name, isPatient, isEmergencyContact, userId]);
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error("Erro ao atualizar perfil do usuário:", error);
+        throw new Error('Erro ao atualizar perfil no banco de dados.');
+    }
+};
+
+export const updateUserPassword = async (userId: number, newPasswordHash: string): Promise<boolean> => {
+    const sql = 'UPDATE USUARIO SET senha_hash = ? WHERE id_usuario = ?';
+    try {
+        const [result]: any = await pool.query(sql, [newPasswordHash, userId]);
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error("Erro ao atualizar senha do usuário:", error);
+        throw new Error('Erro ao atualizar senha no banco de dados.');
+    }
+};

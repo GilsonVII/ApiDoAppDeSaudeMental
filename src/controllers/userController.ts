@@ -77,3 +77,40 @@ export const handleUpdateFcmToken = async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'Erro interno ao salvar token.' });
     }
 };
+
+export const handleUpdateProfile = async (req: Request, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        const { name, is_patient, is_emergency_contact } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({ error: 'Usuário não autenticado.' });
+        }
+
+        await userBusiness.updateProfile(userId, name, is_patient, is_emergency_contact);
+        return res.status(200).json({ message: 'Perfil atualizado com sucesso.' });
+    } catch (error: any) {
+        console.error('Erro no controller de atualizar perfil:', error);
+        if (error.message.includes('Dados inválidos')) {
+            return res.status(400).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao atualizar perfil.' });
+    }
+};
+
+export const handleSearchUser = async (req: Request, res: Response) => {
+    try {
+        const email = req.query.email as string;
+        if (!email) {
+            return res.status(400).json({ error: 'Query param "email" é obrigatório.' });
+        }
+        const profile = await userBusiness.searchUserByEmail(email);
+        if (!profile) {
+            return res.status(404).json({ error: 'Usuário não encontrado.' });
+        }
+        return res.status(200).json(profile);
+    } catch (error: any) {
+        console.error('Erro no controller de busca de usuário:', error);
+        return res.status(500).json({ error: 'Erro interno ao buscar usuário.' });
+    }
+};
