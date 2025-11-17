@@ -100,3 +100,82 @@ export const handleUpdateOccurrenceStatus = async (req: Request, res: Response) 
         return res.status(500).json({ error: 'Erro interno ao atualizar status.' });
     }
 };
+
+export const handleUpdateTemplate = async (req: Request, res: Response) => {
+    try {
+        const loggedInUserId = req.user?.id;
+        const eventId = parseInt(req.params.id_evento, 10);
+        const payload = req.body;
+
+        if (!loggedInUserId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+        if (isNaN(eventId)) return res.status(400).json({ error: 'ID do evento inválido.' });
+
+        await agendaBusiness.updateTemplate(loggedInUserId, eventId, payload);
+        return res.status(200).json({ message: 'Template atualizado com sucesso.' });
+    } catch (error: any) {
+        console.error('Erro ao atualizar template:', error);
+        if (error.message.includes('Permissão negada') || error.message.includes('Template não encontrado')) {
+            return res.status(404).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao atualizar template.' });
+    }
+};
+
+export const handleDeleteTemplate = async (req: Request, res: Response) => {
+    try {
+        const loggedInUserId = req.user?.id;
+        const eventId = parseInt(req.params.id_evento, 10);
+
+        if (!loggedInUserId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+        if (isNaN(eventId)) return res.status(400).json({ error: 'ID do evento inválido.' });
+
+        await agendaBusiness.deleteTemplate(loggedInUserId, eventId);
+        return res.status(200).json({ message: 'Template deletado com sucesso.' });
+    } catch (error: any) {
+        console.error('Erro ao deletar template:', error);
+        if (error.message.includes('Permissão negada') || error.message.includes('Template não encontrado')) {
+            return res.status(404).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao deletar template.' });
+    }
+};
+
+export const handleGetOccurrenceById = async (req: Request, res: Response) => {
+    try {
+        const loggedInUserId = req.user?.id;
+        const occurrenceId = parseInt(req.params.id_ocorrencia, 10);
+
+        if (!loggedInUserId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+        if (isNaN(occurrenceId)) return res.status(400).json({ error: 'ID da ocorrência inválido.' });
+
+        const occurrence = await agendaBusiness.getOccurrenceById(loggedInUserId, occurrenceId);
+        return res.status(200).json(occurrence);
+    } catch (error: any) {
+        console.error('Erro ao buscar ocorrência:', error);
+        if (error.message.includes('Permissão negada') || error.message.includes('Ocorrência não encontrada')) {
+            return res.status(404).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao buscar ocorrência.' });
+    }
+};
+
+export const handleListOccurrencesByDate = async (req: Request, res: Response) => {
+    try {
+        const loggedInUserId = req.user?.id;
+        const patientId = parseInt(req.params.id_paciente, 10);
+        const date = req.params.data; // Assumindo formato YYYY-MM-DD
+
+        if (!loggedInUserId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+        if (isNaN(patientId)) return res.status(400).json({ error: 'ID do paciente inválido.' });
+        if (!date) return res.status(400).json({ error: 'Data é obrigatória.' });
+
+        const occurrences = await agendaBusiness.listOccurrencesByDate(loggedInUserId, patientId, date);
+        return res.status(200).json(occurrences);
+    } catch (error: any) {
+        console.error('Erro ao listar ocorrências por data:', error);
+        if (error.message.includes('Permissão negada')) {
+            return res.status(403).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao listar ocorrências.' });
+    }
+};

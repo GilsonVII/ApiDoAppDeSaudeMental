@@ -13,6 +13,47 @@ export const createAgendaTemplate = async (templateData: Omit<IAgendaEvent, 'id_
     }
 };
 
+export const updateTemplate = async (eventId: number, templateData: Partial<Omit<IAgendaEvent, 'id_evento' | 'id_paciente' | 'id_criador'>>): Promise<boolean> => {
+    const fieldsToUpdate = Object.keys(templateData);
+    if (fieldsToUpdate.length === 0) return true;
+
+    const sqlSet = fieldsToUpdate.map(field => `${field} = ?`).join(', ');
+    const values = fieldsToUpdate.map(field => (templateData as any)[field]);
+    
+    const sql = `UPDATE EVENTO_AGENDA SET ${sqlSet} WHERE id_evento = ?`;
+    
+    try {
+        const [result]: any = await pool.query(sql, [...values, eventId]);
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error("Erro ao atualizar template de agenda:", error);
+        throw new Error('Erro ao atualizar template no banco de dados.');
+    }
+};
+
+export const deleteTemplate = async (eventId: number): Promise<boolean> => {
+    const sql = 'DELETE FROM EVENTO_AGENDA WHERE id_evento = ?';
+    try {
+        const [result]: any = await pool.query(sql, [eventId]);
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error("Erro ao deletar template de agenda:", error);
+        throw new Error('Erro ao deletar template no banco de dados.');
+    }
+};
+
+export const findOccurrencesByDate = async (patientId: number, date: string): Promise<IAgendaOccurrence[]> => {
+    const sql = 'SELECT * FROM OCORRENCIA_AGENDA WHERE usuario_id = ? AND data_ocorrencia = ?';
+    try {
+        const [rows]: any = await pool.query(sql, [patientId, date]);
+        return rows;
+    } catch (error) {
+        console.error("Erro ao buscar ocorrências por data:", error);
+        throw new Error('Erro ao buscar ocorrências.');
+    }
+};
+
+
 export const findOccurrencesByPatientId = async (patientId: number): Promise<IAgendaOccurrence[]> => {
     const sql = 'SELECT * FROM OCORRENCIA_AGENDA WHERE usuario_id = ? ORDER BY data_ocorrencia DESC';
     try {

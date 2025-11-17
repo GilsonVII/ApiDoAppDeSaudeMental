@@ -50,6 +50,53 @@ export const createAgendaTemplate = async (creatorId: number, payload: AgendaTem
     return templateId;
 };
 
+export const updateTemplate = async (loggedInUserId: number, eventId: number, payload: Partial<AgendaTemplatePayload>) => {
+    const template = await agendaRepository.findTemplateById(eventId); // (Você precisa criar findTemplateById no repo)
+    if (!template) {
+        throw new Error('Template não encontrado.');
+    }
+    const hasPermission = await checkPermission(loggedInUserId, template.id_paciente);
+    if (!hasPermission) {
+        throw new Error('Permissão negada para editar este template.');
+    }
+    
+    return agendaRepository.updateTemplate(eventId, payload);
+};
+
+export const deleteTemplate = async (loggedInUserId: number, eventId: number) => {
+    const template = await agendaRepository.findTemplateById(eventId); // (Reutiliza a função)
+    if (!template) {
+        throw new Error('Template não encontrado.');
+    }
+    const hasPermission = await checkPermission(loggedInUserId, template.id_paciente);
+    if (!hasPermission) {
+        throw new Error('Permissão negada para deletar este template.');
+    }
+
+    return agendaRepository.deleteTemplate(eventId);
+};
+
+export const getOccurrenceById = async (loggedInUserId: number, occurrenceId: number) => {
+    const occurrence = await agendaRepository.findOccurrenceById(occurrenceId);
+    if (!occurrence) {
+        throw new Error('Ocorrência não encontrada.');
+    }
+    const hasPermission = await checkPermission(loggedInUserId, occurrence.usuario_id);
+    if (!hasPermission) {
+        throw new Error('Permissão negada para ver esta ocorrência.');
+    }
+    return occurrence;
+};
+
+export const listOccurrencesByDate = async (loggedInUserId: number, patientId: number, date: string) => {
+    const hasPermission = await checkPermission(loggedInUserId, patientId);
+    if (!hasPermission) {
+        throw new Error('Permissão negada para listar ocorrências.');
+    }
+    return agendaRepository.findOccurrencesByDate(patientId, date);
+};
+
+
 export const listTemplatesForPatient = async (loggedInUserId: number, patientId: number) => {
     const hasPermission = await checkPermission(loggedInUserId, patientId);
     if (!hasPermission) {
