@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
 import * as agendaBusiness from '../business/agendaBusiness';
-import { AgendaEventType } from '../models/AgendaEventModel'; 
-
+import { AppError } from '../utils/errors';
+import { 
+    createTemplateSchema, 
+    listOccurrencesSchema, 
+    updateStatusSchema 
+} from '../validation/agendaSchemas';
 
 export const handleCreateAgendaTemplate = async (req: Request, res: Response) => {
     try {
@@ -9,46 +13,56 @@ export const handleCreateAgendaTemplate = async (req: Request, res: Response) =>
         if (!creatorId) {
             return res.status(401).json({ error: 'Usuário não autenticado.' });
         }
-        const payload = req.body as agendaBusiness.AgendaTemplatePayload;
-
-        if (!payload.id_paciente || !payload.titulo || !payload.data_hora || !payload.data_inicio || !payload.tipo) {
-            return res.status(400).json({ error: 'Campos obrigatórios: id_paciente, titulo, data_hora, data_inicio, tipo.' });
+        
+        const validation = createTemplateSchema.safeParse({ body: req.body });
+        if (!validation.success) {
+            return res.status(400).json({ 
+                error: "Dados de entrada inválidos.",
+                details: validation.error.flatten().fieldErrors 
+            });
         }
-        const validTypes: AgendaEventType[] = ['MEDICAMENTO', 'CONSULTA', 'SONO', 'HIDRATACAO', 'MEDITACAO', 'EVENTO', 'GERAL'];
-        if (!validTypes.includes(payload.tipo)) {
-            return res.status(400).json({ error: `Tipo inválido. Tipos permitidos: ${validTypes.join(', ')}` });
-        }
+        
+        const payload = validation.data.body;
+        
         const templateId = await agendaBusiness.createAgendaTemplate(creatorId, payload);
+        
         return res.status(201).json({
             message: "Template de evento de agenda criado com sucesso.",
             templateId
         });
     } catch (error: any) {
         console.error('Erro no controller de criar template:', error);
-        if (error.message.includes('Dados inválidos')) {
-            return res.status(400).json({ error: error.message });
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ error: error.message });
         }
         return res.status(500).json({ error: 'Erro interno ao criar template de agenda.' });
     }
 };
+
 export const handleListOccurrences = async (req: Request, res: Response) => {
     try {
         const loggedInUserId = req.user?.id;
-        const patientId = parseInt(req.params.id_paciente, 10);
-
         if (!loggedInUserId) {
             return res.status(401).json({ error: 'Usuário não autenticado.' });
         }
-        if (isNaN(patientId)) {
-            return res.status(400).json({ error: 'ID do paciente inválido.' });
+        
+        const validation = listOccurrencesSchema.safeParse({ params: req.params });
+        if (!validation.success) {
+            return res.status(400).json({ 
+                error: "Parâmetro de URL inválido.",
+                details: validation.error.flatten().fieldErrors 
+            });
         }
+        
+        const { id_paciente: patientId } = validation.data.params;
 
         const occurrences = await agendaBusiness.listOccurrences(loggedInUserId, patientId);
         return res.status(200).json(occurrences);
+        
     } catch (error: any) {
         console.error('Erro ao listar ocorrências:', error);
-        if (error.message.includes('Permissão negada')) {
-            return res.status(403).json({ error: error.message });
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ error: error.message });
         }
         return res.status(500).json({ error: 'Erro interno ao listar ocorrências.' });
     }
@@ -57,27 +71,32 @@ export const handleListOccurrences = async (req: Request, res: Response) => {
 export const handleUpdateOccurrenceStatus = async (req: Request, res: Response) => {
     try {
         const loggedInUserId = req.user?.id;
-        const occurrenceId = parseInt(req.params.id_ocorrencia, 10);
-        const { status_concluido } = req.body;
-
         if (!loggedInUserId) {
             return res.status(401).json({ error: 'Usuário não autenticado.' });
         }
-        if (isNaN(occurrenceId)) {
-            return res.status(400).json({ error: 'ID da ocorrência inválido.' });
+        
+        const validation = updateStatusSchema.safeParse({ 
+            params: req.params, 
+            body: req.body 
+        });
+        if (!validation.success) {
+            return res.status(400).json({ 
+                error: "Dados de entrada inválidos.",
+                details: validation.error.flatten() 
+            });
         }
-        if (typeof status_concluido !== 'boolean') {
-            return res.status(400).json({ error: 'Campo status_concluido (boolean) é obrigatório.' });
-        }
+        
+        const { id_ocorrencia: occurrenceId } = validation.data.params;
+        const { status_concluido } = validation.data.body;
 
         const updatedOccurrence = await agendaBusiness.updateOccurrenceStatus(loggedInUserId, occurrenceId, status_concluido);
         return res.status(200).json(updatedOccurrence);
+        
     } catch (error: any) {
         console.error('Erro ao atualizar status da ocorrência:', error);
-        if (error.message.includes('Permissão negada') || error.message.includes('Ocorrência não encontrada')) {
-            return res.status(404).json({ error: error.message });
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ error: error.message });
         }
         return res.status(500).json({ error: 'Erro interno ao atualizar status.' });
     }
 };
-

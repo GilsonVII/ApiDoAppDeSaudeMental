@@ -2,12 +2,19 @@ import * as userRepository from '../database/repositories/userRepository';
 import { generateToken } from '../utils/jwt';
 import { hashPassword, comparePassword } from '../utils/bcrypt';
 import { IUser } from '../models/UserModel';
+import { ConflictError, UnauthorizedError } from '../utils/errors';
 
-export const registerNewUser = async (userData: Omit<IUser, 'id_usuario' | 'senha_hash'> & { password: string }): Promise<number | null> => {
+type RegisterData = Omit<IUser, 'id_usuario' | 'senha_hash' | 'is_patient' | 'is_emergency_contact'> & {
+    password: string;
+    is_patient?: boolean;
+    is_emergency_contact?: boolean;
+};
+
+export const registerNewUser = async (userData: RegisterData): Promise<number | null> => {
 
     const existingUser = await userRepository.findUserByEmail(userData.email);
     if (existingUser) {
-        throw new Error('E-mail já cadastrado.');
+        throw new ConflictError('E-mail já cadastrado.');
     }
 
     const hashedPassword = await hashPassword(userData.password);
@@ -16,7 +23,7 @@ export const registerNewUser = async (userData: Omit<IUser, 'id_usuario' | 'senh
         email: userData.email,
         senha_hash: hashedPassword,
         name: userData.name,
-        is_patient: userData.is_patient ?? true,
+        is_patient: userData.is_patient ?? true, 
         is_emergency_contact: userData.is_emergency_contact ?? false, 
     };
 
@@ -27,12 +34,12 @@ export const authenticateUser = async (email: string, password: string): Promise
 
     const user = await userRepository.findUserByEmail(email);
     if (!user) {
-        return null; 
+        throw new UnauthorizedError('Credenciais inválidas.');
     }
 
     const isMatch = await comparePassword(password, user.senha_hash);
     if (!isMatch) {
-        return null; 
+        throw new UnauthorizedError('Credenciais inválidas.');
     }
 
     return generateToken(user.id_usuario);

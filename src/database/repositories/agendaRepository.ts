@@ -100,3 +100,25 @@ export const createOccurrencesBatch = async (occurrences: OccurrenceInput[]): Pr
         throw new Error('Erro ao salvar ocorrências da agenda.');
     }
 };
+
+export const findTemplatesByPatientId = async (patientId: number): Promise<IAgendaEvent[]> => {
+    const sql = 'SELECT * FROM EVENTO_AGENDA WHERE id_paciente = ?';
+    try {
+        const [rows]: any = await pool.query(sql, [patientId]);
+        return rows;
+    } catch (error) {
+        console.error("Erro ao buscar templates por paciente:", error);
+        throw new Error('Erro ao buscar templates.');
+    }
+};
+
+export const findTemplateById = async (eventId: number): Promise<IAgendaEvent | null> => {
+    const sql = 'SELECT * FROM EVENTO_AGENDA WHERE id_evento = ? LIMIT 1';
+    try {
+        const [rows]: any = await pool.query(sql, [eventId]);
+        return rows[0] || null;
+    } catch (error) {
+        console.error("Erro ao buscar template por ID:", error);
+        throw new Error('Erro ao buscar template.');
+    }
+};
