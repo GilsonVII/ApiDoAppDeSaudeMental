@@ -39,4 +39,15 @@ export const findContactsByPatientId = async (patientId: number): Promise<Contac
         console.error("Erro ao buscar contatos por ID do paciente:", error);
         throw new Error('Erro ao buscar contatos.');
     }
+}; 
+
+export const deleteContactRelation = async (relationId: number, patientId: number): Promise<boolean> => {
+    const sql = 'DELETE FROM CONTATO_EMERGENCIA WHERE id_relacao = ? AND id_paciente = ?';
+    try {
+        const [result]: any = await pool.query(sql, [relationId, patientId]);
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error("Erro ao deletar relação de contato:", error);
+        throw new Error('Erro ao deletar relação de contato.');
+    }
 };
