@@ -1,12 +1,7 @@
 import { Request, Response } from 'express';
 import * as userBusiness from '../business/userBusiness';
 import { AppError } from '../utils/errors';
-import { 
-    addContactSchema, 
-    updateFcmTokenSchema, 
-    updateProfileSchema, 
-    searchUserSchema 
-} from '../validation/userSchemas';
+import { addContactSchema, updateFcmTokenSchema, updateProfileSchema, searchUserSchema } from '../validation/userSchemas';
 
 export const handleGetMyProfile = async (req: Request, res: Response) => {
     try {
@@ -78,28 +73,15 @@ export const handleListContacts = async (req: Request, res: Response) => {
 export const handleUpdateFcmToken = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;
-        if (!userId) {
-            return res.status(401).json({ error: 'Usuário não autenticado.' });
-        }
-        
-        const validation = updateFcmTokenSchema.safeParse({ body: req.body });
-        if (!validation.success) {
-            return res.status(400).json({ 
-                error: "Dados de entrada inválidos.",
-                details: validation.error.flatten().fieldErrors 
-            });
-        }
-        
-        const { fcm_token } = validation.data.body;
+        const { fcm_token } = req.body;
+
+        if (!userId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+        if (!fcm_token) return res.status(400).json({ error: 'fcm_token é obrigatório.' });
 
         await userBusiness.updateFcmToken(userId, fcm_token);
         return res.status(200).json({ message: 'Token de notificação salvo.' });
-
     } catch (error: any) {
         console.error('Erro ao salvar FcmToken:', error);
-        if (error instanceof AppError) {
-            return res.status(error.statusCode).json({ error: error.message });
-        }
         return res.status(500).json({ error: 'Erro interno ao salvar token.' });
     }
 };
@@ -144,7 +126,6 @@ export const handleSearchUser = async (req: Request, res: Response) => {
         }
         
         const { email } = validation.data.query;
-        
         const profile = await userBusiness.searchUserByEmail(email);
         if (!profile) {
             return res.status(404).json({ error: 'Usuário não encontrado.' });
@@ -159,3 +140,20 @@ export const handleSearchUser = async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'Erro interno ao buscar usuário.' });
     }
 };
+
+export const handleDeleteContact = async (req: Request, res: Response) => {
+    try {
+        const loggedInUserId = req.user?.id;
+        const relationId = parseInt(req.params.id_relacao, 10);
+
+        if (!loggedInUserId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+        if (isNaN(relationId)) return res.status(400).json({ error: 'ID da relação inválido.' });
+
+        await userBusiness.deleteContact(loggedInUserId, relationId);
+        return res.status(200).json({ message: 'Contato removido com sucesso.' });
+    } catch (error: any) {
+        console.error('Erro ao deletar contato:', error);
+        return res.status(500).json({ error: 'Erro interno ao deletar contato.' });
+    }
+};
+
