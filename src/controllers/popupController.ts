@@ -5,7 +5,6 @@ export const handleGetGeneralPopup = async (req: Request, res: Response) => {
     try {
         const type = req.params.tipo;
         
-        // Simulado: A lógica real buscaria dados com base no tipo
         const popupData = {
             tipo: type,
             titulo: `Este é um Pop-up ${type}`,

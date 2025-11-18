@@ -51,7 +51,7 @@ export const createAgendaTemplate = async (creatorId: number, payload: AgendaTem
 };
 
 export const updateTemplate = async (loggedInUserId: number, eventId: number, payload: Partial<AgendaTemplatePayload>) => {
-    const template = await agendaRepository.findTemplateById(eventId); // (Você precisa criar findTemplateById no repo)
+    const template = await agendaRepository.findTemplateById(eventId);
     if (!template) {
         throw new Error('Template não encontrado.');
     }
@@ -64,7 +64,7 @@ export const updateTemplate = async (loggedInUserId: number, eventId: number, pa
 };
 
 export const deleteTemplate = async (loggedInUserId: number, eventId: number) => {
-    const template = await agendaRepository.findTemplateById(eventId); // (Reutiliza a função)
+    const template = await agendaRepository.findTemplateById(eventId); 
     if (!template) {
         throw new Error('Template não encontrado.');
     }
