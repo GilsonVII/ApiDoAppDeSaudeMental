@@ -8,6 +8,7 @@ CREATE TABLE USUARIO (
     nome VARCHAR(255) NOT NULL,
     is_paciente BOOLEAN DEFAULT TRUE,
     is_contato_emergencia BOOLEAN DEFAULT FALSE,
+    fcm_token VARCHAR(255) NULL DEFAULT NULL,
     INDEX (email)
 );
 
