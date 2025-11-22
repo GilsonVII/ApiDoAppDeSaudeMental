@@ -1,11 +1,12 @@
-import { db } from '../connection'; 
+import { db } from '../connection';
 import { IUser } from '../../models/UserModel';
+
 
 type CreateUserParams = {
     email: string;
     senha_hash: string;
-    nome: string;
-    is_patient: boolean;
+    nome: string;   
+    is_paciente: boolean;  
     is_contato_emergencia: boolean;
 };
 

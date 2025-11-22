@@ -4,14 +4,18 @@ import { hashPassword, comparePassword } from '../utils/bcrypt';
 import { IUser } from '../models/UserModel';
 import { ConflictError, UnauthorizedError } from '../utils/errors';
 
-type RegisterData = Omit<IUser, 'id_usuario' | 'senha_hash' | 'is_patient' | 'is_emergency_contact'> & {
+
+type RegisterInput = {
+    email: string;
     password: string;
+    name: string;
     is_patient?: boolean;
     is_emergency_contact?: boolean;
 };
 
-export const registerNewUser = async (userData: RegisterData): Promise<number | null> => {
+export const registerNewUser = async (userData: RegisterInput): Promise<number | null> => {
 
+    
     const existingUser = await userRepository.findUserByEmail(userData.email);
     if (existingUser) {
         throw new ConflictError('E-mail já cadastrado.');
@@ -19,19 +23,18 @@ export const registerNewUser = async (userData: RegisterData): Promise<number | 
 
     const hashedPassword = await hashPassword(userData.password);
 
-    const userToSave: Omit<IUser, 'id_usuario'> = {
+    const userToSave = {
         email: userData.email,
         senha_hash: hashedPassword,
-        name: userData.name,
-        is_patient: userData.is_patient ?? true, 
-        is_emergency_contact: userData.is_emergency_contact ?? false, 
+        nome: userData.name, 
+        is_paciente: userData.is_patient ?? true, 
+        is_contato_emergencia: userData.is_emergency_contact ?? false, 
     };
 
     return userRepository.createUser(userToSave);
 };
 
 export const authenticateUser = async (email: string, password: string): Promise<string | null> => {
-
     const user = await userRepository.findUserByEmail(email);
     if (!user) {
         throw new UnauthorizedError('Credenciais inválidas.');

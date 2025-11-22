@@ -1,32 +1,26 @@
 import request from 'supertest';
 import express from 'express';
 import masterRouter from '../../src/routes'; 
-import pool from '../../src/database/connection'; 
-
+import { db } from '../../src/database/connection';
 
 const app = express();
 app.use(express.json());
 app.use('/', masterRouter);
 
-
 let token: string;
 let testUserId: number;
-
 const testEmail = `jest_user_${Date.now()}@test.com`; 
 
 beforeAll(async () => {
     try {
-        
-        await pool.query('DELETE FROM USUARIO WHERE email LIKE "jest_user_%"');
+        await db('USUARIO').where('email', 'like', 'jest_user_%').delete();
     } catch (error) {
         console.error("Erro limpando o banco antes dos testes:", error);
     }
 });
 
-
 describe('Fluxo Chave da API (Linha 15 - Teste E2E)', () => {
-
-
+    
     it('deve registrar um novo usuário (POST /v1/auth/register)', async () => {
         const response = await request(app)
             .post('/v1/auth/register')
@@ -103,5 +97,4 @@ describe('Fluxo Chave da API (Linha 15 - Teste E2E)', () => {
         expect(response.status).toBe(201);
         expect(response.body).toHaveProperty('templateId');
     });
-
 });

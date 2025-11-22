@@ -1,5 +1,5 @@
-import pool from '../src/database/connection';
+import { db } from '../src/database/connection'; 
 
 afterAll(async () => {
-  await pool.end();
+  await db.destroy(); 
 });
