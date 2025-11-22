@@ -1,22 +1,21 @@
 import * as agendaRepository from '../database/repositories/agendaRepository';
 import * as contactRepository from '../database/repositories/contactRepository';
-import { IAgendaEvent, AgendaEventType, IAgendaOccurrence } from '../models/AgendaEventModel'; 
+import { IAgendaEvent, AgendaEventType, IAgendaOccurrence } from '../models/AgendaEventModel';
 import { AppError, ForbiddenError, NotFoundError } from '../utils/errors';
-
 
 export interface AgendaTemplatePayload {
     id_paciente: number;
     titulo: string;
-    descricao?: string | null; 
-    data_hora: string; 
-    data_inicio: string; 
-    data_fim?: string | null; 
+    descricao?: string | null;
+    data_hora: string;
+    data_inicio: string;
+    data_fim?: string | null;
     tipo: AgendaEventType;
 }
 
 const checkPermission = async (loggedInUserId: number, patientId: number): Promise<boolean> => {
     if (loggedInUserId === patientId) {
-        return true; 
+        return true;
     }
     try {
         const contacts = await contactRepository.findContactsByPatientId(patientId);
@@ -27,8 +26,46 @@ const checkPermission = async (loggedInUserId: number, patientId: number): Promi
     }
 };
 
+function generateOccurrences(templateId: number, patientId: number, startDateStr: string, endDateStr: string | null | undefined): Omit<IAgendaOccurrence, 'id_ocorrencia'>[] {
+    const occurrences: Omit<IAgendaOccurrence, 'id_ocorrencia'>[] = [];
+    const startParts = startDateStr.split('-').map(Number);
+    const startDate = new Date(startParts[0], startParts[1] - 1, startParts[2], 12, 0, 0);
+
+    let endDate: Date;
+    if (endDateStr) {
+        const endParts = endDateStr.split('-').map(Number);
+        endDate = new Date(endParts[0], endParts[1] - 1, endParts[2], 12, 0, 0);
+    } else {
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 90);
+    }
+
+    console.log(`[Business] Gerando ocorrências de ${startDate.toISOString()} até ${endDate.toISOString()}`);
+
+    let currentDate = new Date(startDate);
+    let safetyCount = 0;
+
+    while (currentDate <= endDate && safetyCount < 365) {
+        occurrences.push({
+            id_evento: templateId,
+            usuario_id: patientId,
+            data_ocorrencia: currentDate.toISOString().split('T')[0],
+            status_concluido: false
+        });
+        currentDate.setDate(currentDate.getDate() + 1);
+        safetyCount++;
+    }
+
+    console.log(`[Business] ${occurrences.length} ocorrências geradas.`);
+    return occurrences;
+}
+
 export const createAgendaTemplate = async (creatorId: number, payload: AgendaTemplatePayload): Promise<number | null> => {
-    
+
+    if (!payload || !payload.titulo || !payload.id_paciente || !payload.data_hora || !payload.data_inicio || !payload.tipo) {
+        throw new Error('Dados inválidos: Faltam campos obrigatórios para criar o template.');
+    }
+
     const hasPermission = await checkPermission(creatorId, payload.id_paciente);
     if (!hasPermission) {
         throw new ForbiddenError('Permissão negada: Você não pode criar eventos para este paciente.');
@@ -44,9 +81,28 @@ export const createAgendaTemplate = async (creatorId: number, payload: AgendaTem
         id_paciente: payload.id_paciente,
         id_criador: creatorId,
     };
-    
+
     const templateId = await agendaRepository.createAgendaTemplate(templateToSave);
-    
+
+    if (!templateId) {
+        throw new Error('Falha ao criar o template no banco.');
+    }
+
+    try {
+        const occurrences = generateOccurrences(
+            templateId,
+            payload.id_paciente,
+            payload.data_inicio,
+            payload.data_fim
+        );
+
+        if (occurrences.length > 0) {
+            await agendaRepository.createOccurrencesBatch(occurrences);
+        }
+    } catch (error) {
+        console.error("Erro ao gerar ocorrências (mas template foi criado):", error);
+    }
+
     return templateId;
 };
 
@@ -59,12 +115,12 @@ export const updateTemplate = async (loggedInUserId: number, eventId: number, pa
     if (!hasPermission) {
         throw new Error('Permissão negada para editar este template.');
     }
-    
+
     return agendaRepository.updateTemplate(eventId, payload);
 };
 
 export const deleteTemplate = async (loggedInUserId: number, eventId: number) => {
-    const template = await agendaRepository.findTemplateById(eventId); 
+    const template = await agendaRepository.findTemplateById(eventId);
     if (!template) {
         throw new Error('Template não encontrado.');
     }
@@ -96,7 +152,6 @@ export const listOccurrencesByDate = async (loggedInUserId: number, patientId: n
     return agendaRepository.findOccurrencesByDate(patientId, date);
 };
 
-
 export const listTemplatesForPatient = async (loggedInUserId: number, patientId: number) => {
     const hasPermission = await checkPermission(loggedInUserId, patientId);
     if (!hasPermission) {
@@ -118,11 +173,11 @@ export const updateOccurrenceStatus = async (loggedInUserId: number, occurrenceI
     if (!occurrence) {
         throw new NotFoundError('Ocorrência não encontrada.');
     }
-    
+
     const hasPermission = await checkPermission(loggedInUserId, occurrence.usuario_id);
     if (!hasPermission) {
         throw new ForbiddenError('Permissão negada para atualizar esta ocorrência.');
     }
-    
+
     return agendaRepository.updateOccurrenceStatus(occurrenceId, status);
 };

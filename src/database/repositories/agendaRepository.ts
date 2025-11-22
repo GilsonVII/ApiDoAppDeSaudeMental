@@ -13,19 +13,10 @@ export const createAgendaTemplate = async (templateData: Omit<IAgendaEvent, 'id_
     }
 };
 
-export const findTemplatesByPatientId = async (patientId: number): Promise<IAgendaEvent[]> => {
-    try {
-        return await db('EVENTO_AGENDA').where('id_paciente', patientId);
-    } catch (error) {
-        console.error("Erro ao buscar templates por paciente:", error);
-        throw new Error('Erro ao buscar templates.');
-    }
-};
-
 export const createOccurrencesBatch = async (occurrences: OccurrenceInput[]): Promise<boolean> => {
     if (occurrences.length === 0) return true;
+    
     try {
-        // Knex lida com batch insert nativamente
         await db.batchInsert('OCORRENCIA_AGENDA', occurrences); 
         return true;
     } catch (error) {
@@ -45,15 +36,13 @@ export const findOccurrencesByPatientId = async (patientId: number): Promise<IAg
     }
 };
 
-export const findOccurrenceById = async (occurrenceId: number): Promise<IAgendaOccurrence | null> => {
+export const findTemplateById = async (eventId: number): Promise<IAgendaEvent | null> => {
     try {
-        const occurrence = await db('OCORRENCIA_AGENDA')
-            .where('id_ocorrencia', occurrenceId)
-            .first();
-        return occurrence || null;
+        const template = await db('EVENTO_AGENDA').where('id_evento', eventId).first();
+        return template || null;
     } catch (error) {
-        console.error("Erro ao buscar ocorrência por ID:", error);
-        throw new Error('Erro ao buscar ocorrência.');
+        console.error("Erro ao buscar template por ID:", error);
+        throw new Error('Erro ao buscar template.');
     }
 };
 
@@ -63,7 +52,7 @@ export const updateOccurrenceStatus = async (occurrenceId: number, status: boole
             .where('id_ocorrencia', occurrenceId)
             .update({ status_concluido: status });
             
-        const updated = await findOccurrenceById(occurrenceId);
+        const updated = await db('OCORRENCIA_AGENDA').where('id_ocorrencia', occurrenceId).first();
         if (!updated) throw new Error('Falha ao buscar ocorrência após atualização.');
         return updated;
     } catch (error) {
@@ -75,7 +64,6 @@ export const updateOccurrenceStatus = async (occurrenceId: number, status: boole
 export const findPendingOccurrencesForCron = async (now: Date): Promise<any[]> => {
     const currentDay = now.toISOString().split('T')[0];
     const currentHour = now.toTimeString().split(' ')[0].substring(0, 5);
-
     try {
         return await db('OCORRENCIA_AGENDA as o')
             .join('EVENTO_AGENDA as e', 'o.id_evento', 'e.id_evento')
@@ -83,21 +71,31 @@ export const findPendingOccurrencesForCron = async (now: Date): Promise<any[]> =
             .select('o.id_ocorrencia', 'e.titulo', 'e.descricao', 'u.fcm_token')
             .where('o.data_ocorrencia', currentDay)
             .andWhere('o.status_concluido', false)
-            .andWhereRaw("TIME_FORMAT(e.data_hora, '%H:%i') = ?", [currentHour])
+            .whereRaw("TIME_FORMAT(e.data_hora, '%H:%i') = ?", [currentHour])
             .whereNotNull('u.fcm_token');
     } catch (error) {
         console.error("Erro ao buscar ocorrências para o cron:", error);
         return [];
     }
 };
-
-export const findTemplateById = async (eventId: number): Promise<IAgendaEvent | null> => {
+export const findTemplatesByPatientId = async (patientId: number): Promise<IAgendaEvent[]> => {
     try {
-        const template = await db('EVENTO_AGENDA').where('id_evento', eventId).first();
-        return template || null;
+        return await db('EVENTO_AGENDA').where('id_paciente', patientId);
     } catch (error) {
-        console.error("Erro ao buscar template por ID:", error);
-        throw new Error('Erro ao buscar template.');
+        console.error("Erro ao buscar templates por paciente:", error);
+        throw new Error('Erro ao buscar templates.');
+    }
+};
+
+export const findOccurrenceById = async (occurrenceId: number): Promise<IAgendaOccurrence | null> => {
+    try {
+        const occurrence = await db('OCORRENCIA_AGENDA')
+            .where('id_ocorrencia', occurrenceId)
+            .first();
+        return occurrence || null;
+    } catch (error) {
+        console.error("Erro ao buscar ocorrência por ID:", error);
+        throw new Error('Erro ao buscar ocorrência.');
     }
 };
 

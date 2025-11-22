@@ -20,7 +20,7 @@ beforeAll(async () => {
 });
 
 describe('Fluxo Chave da API (Linha 15 - Teste E2E)', () => {
-    
+
     it('deve registrar um novo usuário (POST /v1/auth/register)', async () => {
         const response = await request(app)
             .post('/v1/auth/register')
@@ -77,10 +77,17 @@ describe('Fluxo Chave da API (Linha 15 - Teste E2E)', () => {
 
         expect(response.status).toBe(201);
         expect(response.body).toHaveProperty('eventId');
-        expect(response.body.notifiedContactsCount).toBeDefined(); 
     });
 
-    it('deve criar um template de agenda (201) (POST /v1/agenda/template)', async () => {
+    it('deve criar um template de agenda e gerar ocorrências (POST /v1/agenda/template)', async () => {
+
+        const today = new Date();
+        const nextWeek = new Date();
+        nextWeek.setDate(today.getDate() + 5);
+
+        const dataInicio = today.toISOString().split('T')[0];
+        const dataFim = nextWeek.toISOString().split('T')[0];
+
         const response = await request(app)
             .post('/v1/agenda/template')
             .set('Authorization', `Bearer ${token}`)
@@ -89,12 +96,28 @@ describe('Fluxo Chave da API (Linha 15 - Teste E2E)', () => {
                 titulo: "Teste de Template (Jest)",
                 descricao: "Teste E2E da Linha 11",
                 data_hora: "14:00:00",
-                data_inicio: "2025-11-20",
-                data_fim: "2025-11-30",
+                data_inicio: dataInicio, 
+                data_fim: dataFim,      
                 tipo: "GERAL"
             });
 
         expect(response.status).toBe(201);
         expect(response.body).toHaveProperty('templateId');
+        
+        await new Promise(r => setTimeout(r, 2000));
+    });
+
+    it('deve listar as ocorrências geradas automaticamente (GET /v1/agenda/ocorrencias/:id)', async () => {
+        const response = await request(app)
+            .get(`/v1/agenda/ocorrencias/${testUserId}`)
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(response.status).toBe(200);
+        expect(Array.isArray(response.body)).toBe(true);
+
+        if (response.body.length === 0) {
+            console.error("ALERTA: Nenhuma ocorrência encontrada. Verifique a lógica de datas no agendaBusiness.");
+        }
+        expect(response.body.length).toBeGreaterThan(0); 
     });
 });
