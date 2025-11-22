@@ -1,4 +1,4 @@
-import pool from '../connection';
+import { db } from '../connection';
 import { IContactRelation } from '../../models/ContactModel';
 
 type ContactInput = Omit<IContactRelation, 'id_relacao'>;
@@ -10,11 +10,9 @@ type ContactSummary = {
 };
 
 export const createContactRelation = async (data: ContactInput): Promise<number | null> => {
-    const { id_paciente, id_contato, whatsapp_numero } = data;
-    const sql = 'INSERT INTO CONTATO_EMERGENCIA (id_paciente, id_contato, whatsapp_numero) VALUES (?, ?, ?)';
     try {
-        const [result]: any = await pool.query(sql, [id_paciente, id_contato, whatsapp_numero]);
-        return result.insertId;
+        const [id] = await db('CONTATO_EMERGENCIA').insert(data);
+        return id;
     } catch (error) {
         console.error("Erro ao criar relação de contato:", error);
         throw new Error('Erro ao salvar relação de contato.');
@@ -22,30 +20,24 @@ export const createContactRelation = async (data: ContactInput): Promise<number 
 };
 
 export const findContactsByPatientId = async (patientId: number): Promise<ContactSummary[]> => {
-    const sql = `
-        SELECT 
-            ce.id_contato, 
-            ce.whatsapp_numero, 
-            u.nome as nome_contato, 
-            u.email as email_contato
-        FROM CONTATO_EMERGENCIA ce
-        JOIN USUARIO u ON ce.id_contato = u.id_usuario
-        WHERE ce.id_paciente = ?;
-    `;
     try {
-        const [rows]: any = await pool.query(sql, [patientId]);
-        return rows;
+        const rows = await db('CONTATO_EMERGENCIA as ce')
+            .join('USUARIO as u', 'ce.id_contato', 'u.id_usuario')
+            .select('ce.id_contato', 'ce.whatsapp_numero', 'u.nome as nome_contato', 'u.email as email_contato')
+            .where('ce.id_paciente', patientId);
+        return rows as ContactSummary[];
     } catch (error) {
         console.error("Erro ao buscar contatos por ID do paciente:", error);
         throw new Error('Erro ao buscar contatos.');
     }
-}; 
+};
 
 export const deleteContactRelation = async (relationId: number, patientId: number): Promise<boolean> => {
-    const sql = 'DELETE FROM CONTATO_EMERGENCIA WHERE id_relacao = ? AND id_paciente = ?';
     try {
-        const [result]: any = await pool.query(sql, [relationId, patientId]);
-        return result.affectedRows > 0;
+        const count = await db('CONTATO_EMERGENCIA')
+            .where({ id_relacao: relationId, id_paciente: patientId })
+            .delete();
+        return count > 0;
     } catch (error) {
         console.error("Erro ao deletar relação de contato:", error);
         throw new Error('Erro ao deletar relação de contato.');

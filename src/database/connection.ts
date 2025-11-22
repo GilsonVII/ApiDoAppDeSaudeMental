@@ -1,27 +1,23 @@
-import mysql from 'mysql2/promise'; 
+import knex from 'knex';
 
-const dbConfig = {
+export const db = knex({
+  client: 'mysql2',
+  connection: {
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '3306', 10),
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_DATABASE || 'alertamente_db',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-};
+  },
+  pool: { min: 2, max: 10 } 
+});
 
-const pool = mysql.createPool(dbConfig);
-
-export const connectDB = async () => {
+export const checkConnection = async () => {
     try {
-        const connection = await pool.getConnection();
-        console.log(`Banco de Dados MySQL conectado com sucesso ao host: ${dbConfig.host}`);
-        connection.release(); 
+        await db.raw('SELECT 1');
+        console.log(`✅ Knex conectado ao MySQL em ${process.env.DB_HOST || 'localhost'}!`);
     } catch (error) {
-        console.error('ERRO ao conectar ao banco de dados MySQL:', error);
+        console.error('❌ Erro ao conectar Knex:', error);
         process.exit(1);
     }
 };
-
-export default pool;
