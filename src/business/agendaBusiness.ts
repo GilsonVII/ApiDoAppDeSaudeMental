@@ -1,7 +1,8 @@
 import * as agendaRepository from '../database/repositories/agendaRepository';
 import * as contactRepository from '../database/repositories/contactRepository';
+import { Logger } from '../utils/logger';
 import { IAgendaEvent, AgendaEventType, IAgendaOccurrence } from '../models/AgendaEventModel';
-import { AppError, ForbiddenError, NotFoundError } from '../utils/errors';
+import { AppError, ForbiddenError, NotFoundError, BadRequestError } from '../utils/errors';
 
 export interface AgendaTemplatePayload {
     id_paciente: number;
@@ -21,13 +22,14 @@ const checkPermission = async (loggedInUserId: number, patientId: number): Promi
         const contacts = await contactRepository.findContactsByPatientId(patientId);
         return contacts.some(contact => contact.id_contato === loggedInUserId);
     } catch (e) {
-        console.error("Erro ao checar permissão", e);
+        Logger.error("Erro ao checar permissão", e);
         return false;
     }
 };
 
 function generateOccurrences(templateId: number, patientId: number, startDateStr: string, endDateStr: string | null | undefined): Omit<IAgendaOccurrence, 'id_ocorrencia'>[] {
     const occurrences: Omit<IAgendaOccurrence, 'id_ocorrencia'>[] = [];
+    
     const startParts = startDateStr.split('-').map(Number);
     const startDate = new Date(startParts[0], startParts[1] - 1, startParts[2], 12, 0, 0);
 
@@ -40,7 +42,7 @@ function generateOccurrences(templateId: number, patientId: number, startDateStr
         endDate.setDate(startDate.getDate() + 90);
     }
 
-    console.log(`[Business] Gerando ocorrências de ${startDate.toISOString()} até ${endDate.toISOString()}`);
+    Logger.info(`[Business] Gerando ocorrências de ${startDate.toISOString()} até ${endDate.toISOString()}`);
 
     let currentDate = new Date(startDate);
     let safetyCount = 0;
@@ -56,14 +58,14 @@ function generateOccurrences(templateId: number, patientId: number, startDateStr
         safetyCount++;
     }
 
-    console.log(`[Business] ${occurrences.length} ocorrências geradas.`);
+    Logger.info(`[Business] ${occurrences.length} ocorrências geradas.`);
     return occurrences;
 }
 
 export const createAgendaTemplate = async (creatorId: number, payload: AgendaTemplatePayload): Promise<number | null> => {
 
     if (!payload || !payload.titulo || !payload.id_paciente || !payload.data_hora || !payload.data_inicio || !payload.tipo) {
-        throw new Error('Dados inválidos: Faltam campos obrigatórios para criar o template.');
+        throw new BadRequestError('Dados inválidos: Faltam campos obrigatórios para criar o template.');
     }
 
     const hasPermission = await checkPermission(creatorId, payload.id_paciente);
@@ -100,7 +102,8 @@ export const createAgendaTemplate = async (creatorId: number, payload: AgendaTem
             await agendaRepository.createOccurrencesBatch(occurrences);
         }
     } catch (error) {
-        console.error("Erro ao gerar ocorrências (mas template foi criado):", error);
+     
+        Logger.error("Erro ao gerar ocorrências (mas template foi criado):", error);
     }
 
     return templateId;
@@ -109,11 +112,11 @@ export const createAgendaTemplate = async (creatorId: number, payload: AgendaTem
 export const updateTemplate = async (loggedInUserId: number, eventId: number, payload: Partial<AgendaTemplatePayload>) => {
     const template = await agendaRepository.findTemplateById(eventId);
     if (!template) {
-        throw new Error('Template não encontrado.');
+        throw new NotFoundError('Template não encontrado.');
     }
     const hasPermission = await checkPermission(loggedInUserId, template.id_paciente);
     if (!hasPermission) {
-        throw new Error('Permissão negada para editar este template.');
+        throw new ForbiddenError('Permissão negada para editar este template.');
     }
 
     return agendaRepository.updateTemplate(eventId, payload);
@@ -122,11 +125,11 @@ export const updateTemplate = async (loggedInUserId: number, eventId: number, pa
 export const deleteTemplate = async (loggedInUserId: number, eventId: number) => {
     const template = await agendaRepository.findTemplateById(eventId);
     if (!template) {
-        throw new Error('Template não encontrado.');
+        throw new NotFoundError('Template não encontrado.');
     }
     const hasPermission = await checkPermission(loggedInUserId, template.id_paciente);
     if (!hasPermission) {
-        throw new Error('Permissão negada para deletar este template.');
+        throw new ForbiddenError('Permissão negada para deletar este template.');
     }
 
     return agendaRepository.deleteTemplate(eventId);
@@ -135,11 +138,11 @@ export const deleteTemplate = async (loggedInUserId: number, eventId: number) =>
 export const getOccurrenceById = async (loggedInUserId: number, occurrenceId: number) => {
     const occurrence = await agendaRepository.findOccurrenceById(occurrenceId);
     if (!occurrence) {
-        throw new Error('Ocorrência não encontrada.');
+        throw new NotFoundError('Ocorrência não encontrada.');
     }
     const hasPermission = await checkPermission(loggedInUserId, occurrence.usuario_id);
     if (!hasPermission) {
-        throw new Error('Permissão negada para ver esta ocorrência.');
+        throw new ForbiddenError('Permissão negada para ver esta ocorrência.');
     }
     return occurrence;
 };
@@ -147,7 +150,7 @@ export const getOccurrenceById = async (loggedInUserId: number, occurrenceId: nu
 export const listOccurrencesByDate = async (loggedInUserId: number, patientId: number, date: string) => {
     const hasPermission = await checkPermission(loggedInUserId, patientId);
     if (!hasPermission) {
-        throw new Error('Permissão negada para listar ocorrências.');
+        throw new ForbiddenError('Permissão negada para listar ocorrências.');
     }
     return agendaRepository.findOccurrencesByDate(patientId, date);
 };
