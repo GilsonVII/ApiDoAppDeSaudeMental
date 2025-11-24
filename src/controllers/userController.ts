@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as userBusiness from '../business/userBusiness';
 import { AppError } from '../utils/errors';
+import { Logger } from '../utils/logger';
 import { addContactSchema, updateFcmTokenSchema, updateProfileSchema, searchUserSchema } from '../validation/userSchemas';
 
 export const handleGetMyProfile = async (req: Request, res: Response) => {
@@ -14,7 +15,7 @@ export const handleGetMyProfile = async (req: Request, res: Response) => {
         
         return res.status(200).json(profile); 
     } catch (error: any) {
-        console.error('Erro no controller de perfil:', error);
+        Logger.error('Erro no controller de perfil:', error);
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({ error: error.message });
         }
@@ -43,7 +44,7 @@ export const handleAddContact = async (req: Request, res: Response) => {
         return res.status(201).json({ message: 'Contato adicionado com sucesso.', relationId });
         
     } catch (error: any) {
-        console.error('Erro ao adicionar contato:', error);
+        Logger.error('Erro ao adicionar contato:', error);
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({ error: error.message });
         }
@@ -62,7 +63,7 @@ export const handleListContacts = async (req: Request, res: Response) => {
         return res.status(200).json(contacts);
         
     } catch (error: any) {
-        console.error('Erro ao listar contatos:', error);
+        Logger.error('Erro ao listar contatos:', error);
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({ error: error.message });
         }
@@ -81,7 +82,7 @@ export const handleUpdateFcmToken = async (req: Request, res: Response) => {
         await userBusiness.updateFcmToken(userId, fcm_token);
         return res.status(200).json({ message: 'Token de notificação salvo.' });
     } catch (error: any) {
-        console.error('Erro ao salvar FcmToken:', error);
+        Logger.error('Erro ao salvar FcmToken:', error);
         return res.status(500).json({ error: 'Erro interno ao salvar token.' });
     }
 };
@@ -107,7 +108,7 @@ export const handleUpdateProfile = async (req: Request, res: Response) => {
         return res.status(200).json({ message: 'Perfil atualizado com sucesso.' });
         
     } catch (error: any) {
-        console.error('Erro no controller de atualizar perfil:', error);
+        Logger.error('Erro no controller de atualizar perfil:', error);
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({ error: error.message });
         }
@@ -133,7 +134,7 @@ export const handleSearchUser = async (req: Request, res: Response) => {
         return res.status(200).json(profile);
         
     } catch (error: any) {
-        console.error('Erro no controller de busca de usuário:', error);
+        Logger.error('Erro no controller de busca de usuário:', error);
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({ error: error.message });
         }
@@ -152,7 +153,7 @@ export const handleDeleteContact = async (req: Request, res: Response) => {
         await userBusiness.deleteContact(loggedInUserId, relationId);
         return res.status(200).json({ message: 'Contato removido com sucesso.' });
     } catch (error: any) {
-        console.error('Erro ao deletar contato:', error);
+        Logger.error('Erro ao deletar contato:', error);
         return res.status(500).json({ error: 'Erro interno ao deletar contato.' });
     }
 };

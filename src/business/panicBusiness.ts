@@ -1,7 +1,9 @@
 import * as panicRepository from '../database/repositories/panicRepository';
 import * as userRepository from '../database/repositories/userRepository'; 
 import { sendPanicEmail } from '../utils/notificationService'; 
-import * as contactRepository from '../database/repositories/contactRepository'; 
+import * as contactRepository from '../database/repositories/contactRepository';
+import { Logger } from '../utils/logger';
+import { ForbiddenError, NotFoundError } from '../utils/errors';
  
 export interface Coord {
     latitude: number;
@@ -12,7 +14,7 @@ export const triggerPanic = async (userId: number, coords: Coord) => {
     
     const patient = await userRepository.findUserById(userId);
     if (!patient) {
-        throw new Error('Usuário (paciente) que acionou o pânico não foi encontrado.');
+        throw new NotFoundError('Usuário (paciente) que acionou o pânico não foi encontrado.');
     }
  
     const contacts = await panicRepository.getEmergencyContactsData(userId);
@@ -25,7 +27,7 @@ export const triggerPanic = async (userId: number, coords: Coord) => {
 
     const eventId = await panicRepository.createPanicLog(eventPayload);
  
-    console.log(`[panicBusiness] Pânico acionado por ${patient.name}. Notificando ${contacts.length} contatos...`);
+    Logger.info(`[panicBusiness] Pânico acionado por ${patient.name}. Notificando ${contacts.length} contatos...`);
  
     for (const contact of contacts) {
         await sendPanicEmail({
@@ -45,7 +47,7 @@ export const getPanicLogs = async (loggedInUserId: number, patientId: number) =>
     const isAllowed = contacts.some(contact => contact.id_contato === loggedInUserId) || loggedInUserId === patientId;
  
     if (!isAllowed) {
-        throw new Error('Permissão negada para ver logs de pânico.');
+        throw new ForbiddenError('Permissão negada para ver logs de pânico.');
     }
     
     return panicRepository.getPanicLogsByUserId(patientId);

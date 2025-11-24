@@ -1,5 +1,6 @@
 import { db } from '../connection';
 import { IPanicEvent } from '../../models/PanicEventModel';
+import { AppError, ForbiddenError, NotFoundError, BadRequestError, InternalServerError } from '../../utils/errors';
 
 export const createPanicLog = async (panicData: Omit<IPanicEvent, 'id_panico' | 'timestamp'>): Promise<number | null> => {
     try {
@@ -7,7 +8,7 @@ export const createPanicLog = async (panicData: Omit<IPanicEvent, 'id_panico' | 
         return id;
     } catch (error) {
         console.error("Erro ao criar log de pânico:", error);
-        throw new Error('Erro ao salvar evento de pânico.');
+        throw new InternalServerError('Erro ao salvar evento de pânico.');
     }
 };
 
@@ -19,7 +20,7 @@ export const getEmergencyContactsData = async (userId: number): Promise<{ email:
             .where('ce.id_paciente', userId);
     } catch (error) {
         console.error("Erro ao buscar dados dos contatos de emergência:", error);
-        throw new Error('Erro ao buscar contatos de emergência.');
+        throw new InternalServerError('Erro ao buscar contatos de emergência.');
     }
 };
 
@@ -30,7 +31,7 @@ export const getPanicLogsByUserId = async (userId: number): Promise<IPanicEvent[
             .orderBy('timestamp', 'desc');
     } catch (error) {
         console.error("Erro ao buscar logs de pânico:", error);
-        throw new Error('Erro ao buscar histórico de pânico.');
+        throw new InternalServerError('Erro ao buscar histórico de pânico.');
     }
 };
 
@@ -40,6 +41,6 @@ export const getEmergencyContacts = async (userId: number): Promise<any[]> => {
         return await db('CONTATO_EMERGENCIA').where('id_paciente', userId);
     } catch (error) {
          console.error("Erro ao buscar contatos (simples):", error);
-         throw new Error('Erro ao buscar contatos.');
+         throw new InternalServerError('Erro ao buscar contatos.');
     }
 }

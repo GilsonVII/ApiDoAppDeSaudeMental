@@ -2,23 +2,25 @@ import * as userRepository from '../database/repositories/userRepository';
 import * as contactRepository from '../database/repositories/contactRepository';
 import { IUser } from '../models/UserModel'; 
 import { IContactRelation } from '../models/ContactModel';
+import { ForbiddenError, NotFoundError } from '../utils/errors';
+
 
 export const getProfile = async (userId: number): Promise<Omit<IUser, 'senha_hash'> | null> => {
     const user = await userRepository.findUserById(userId);
     if (!user) {
-        throw new Error('Usuário não encontrado');
+        throw new NotFoundError('Usuário não encontrado');
     }
     return user; 
 };
 
 export const addContact = async (loggedInUserId: number, payload: Omit<IContactRelation, 'id_relacao'>): Promise<number | null> => {
     if (loggedInUserId !== payload.id_paciente) {
-        throw new Error('Permissão negada: Você só pode adicionar contatos para si mesmo.');
+        throw new ForbiddenError('Permissão negada: Você só pode adicionar contatos para si mesmo.');
     }
     
     const contactUser = await userRepository.findUserById(payload.id_contato);
     if (!contactUser) {
-        throw new Error('Usuário de contato não encontrado.');
+        throw new NotFoundError('Usuário de contato não encontrado.');
     }
 
     return contactRepository.createContactRelation(payload);

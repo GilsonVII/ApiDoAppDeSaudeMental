@@ -2,7 +2,7 @@ import * as agendaRepository from '../database/repositories/agendaRepository';
 import * as contactRepository from '../database/repositories/contactRepository';
 import { Logger } from '../utils/logger';
 import { IAgendaEvent, AgendaEventType, IAgendaOccurrence } from '../models/AgendaEventModel';
-import { AppError, ForbiddenError, NotFoundError, BadRequestError } from '../utils/errors';
+import { AppError, ForbiddenError, NotFoundError, BadRequestError, InternalServerError } from '../utils/errors';
 
 export interface AgendaTemplatePayload {
     id_paciente: number;
@@ -87,7 +87,7 @@ export const createAgendaTemplate = async (creatorId: number, payload: AgendaTem
     const templateId = await agendaRepository.createAgendaTemplate(templateToSave);
 
     if (!templateId) {
-        throw new Error('Falha ao criar o template no banco.');
+        throw new InternalServerError('Falha ao criar o template no banco.');
     }
 
     try {
