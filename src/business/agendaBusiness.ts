@@ -29,7 +29,7 @@ const checkPermission = async (loggedInUserId: number, patientId: number): Promi
 
 function generateOccurrences(templateId: number, patientId: number, startDateStr: string, endDateStr: string | null | undefined): Omit<IAgendaOccurrence, 'id_ocorrencia'>[] {
     const occurrences: Omit<IAgendaOccurrence, 'id_ocorrencia'>[] = [];
-    
+     
     const startParts = startDateStr.split('-').map(Number);
     const startDate = new Date(startParts[0], startParts[1] - 1, startParts[2], 12, 0, 0);
 
