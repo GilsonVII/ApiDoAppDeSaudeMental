@@ -1,4 +1,5 @@
 import knex from 'knex';
+import { Logger } from '../utils/logger';
 
 export const db = knex({
   client: 'mysql2',
@@ -15,9 +16,9 @@ export const db = knex({
 export const checkConnection = async () => {
     try {
         await db.raw('SELECT 1');
-        console.log(`✅ Knex conectado ao MySQL em ${process.env.DB_HOST || 'localhost'}!`);
+        Logger.info(`✅ Knex conectado ao MySQL em ${process.env.DB_HOST || 'localhost'}!`);
     } catch (error) {
-        console.error('❌ Erro ao conectar Knex:', error);
+        Logger.error('❌ Erro ao conectar Knex:', error);
         process.exit(1);
     }
 };

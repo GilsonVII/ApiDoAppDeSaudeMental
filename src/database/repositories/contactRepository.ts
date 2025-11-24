@@ -1,5 +1,7 @@
 import { db } from '../connection';
 import { IContactRelation } from '../../models/ContactModel';
+import { Logger } from '../../utils/logger';
+import { AppError, ForbiddenError, NotFoundError, BadRequestError, InternalServerError } from '../../utils/errors';
 
 type ContactInput = Omit<IContactRelation, 'id_relacao'>;
 type ContactSummary = {
@@ -14,8 +16,8 @@ export const createContactRelation = async (data: ContactInput): Promise<number 
         const [id] = await db('CONTATO_EMERGENCIA').insert(data);
         return id;
     } catch (error) {
-        console.error("Erro ao criar relação de contato:", error);
-        throw new Error('Erro ao salvar relação de contato.');
+        Logger.error("Erro ao criar relação de contato:", error);
+        throw new InternalServerError('Erro ao salvar relação de contato.');
     }
 };
 
@@ -27,8 +29,8 @@ export const findContactsByPatientId = async (patientId: number): Promise<Contac
             .where('ce.id_paciente', patientId);
         return rows as ContactSummary[];
     } catch (error) {
-        console.error("Erro ao buscar contatos por ID do paciente:", error);
-        throw new Error('Erro ao buscar contatos.');
+        Logger.error("Erro ao buscar contatos por ID do paciente:", error);
+        throw new InternalServerError('Erro ao buscar contatos.');
     }
 };
 
@@ -39,7 +41,7 @@ export const deleteContactRelation = async (relationId: number, patientId: numbe
             .delete();
         return count > 0;
     } catch (error) {
-        console.error("Erro ao deletar relação de contato:", error);
-        throw new Error('Erro ao deletar relação de contato.');
+        Logger.error("Erro ao deletar relação de contato:", error);
+        throw new InternalServerError('Erro ao deletar relação de contato.');
     }
 };

@@ -5,15 +5,15 @@ O que é: Um conjunto de conexões de banco de dados que já foram abertas e aut
 
 Por que usar: Abrir e fechar uma conexão de banco de dados para cada solicitação é lento e consome muitos recursos do servidor de banco de dados. Um pool mantém as conexões ativas, prontas para serem "emprestadas" à API quando necessário, e as retorna ao pool após o uso. Isso reduz a latência e o consumo de recursos.
 
-------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 [result] representa o primeiro elemento do array retornado pela execução da query SQL.
 
-------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 [rows] é o nome dado ao primeiro elemento do array de resposta retornado pelo banco de dados, e representa os registros de dados que você solicitou.
 
-------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 [Async]
 Toda função declarada com async tem duas características principais:
@@ -23,3 +23,16 @@ Permite o Uso de await: O async é o que permite que você use a palavra-chave a
 
 "Await" faz a função esperar até um valor ser retornado, usado frequentemente em operações demoradas (operação BD).
 "Promise" é um objeto que representa a eventual conclusão (ou falha) de uma operação async e seu valor resultante.
+
+------------------------------------------------------------------------------------------------------------------------
+{ZOD}
+Em resumo, ela garante a segurança de tipos em tempo de execução, garantindo que os dados que seu código recebe são exatamente o que você espera.
+
+Quando você envia dados através de parâmetros URL, é sempre recebido pelo servidor como String.
+Na lógica do banco de dados, os dados como IDs devem ser tratados como Numbers. O Zod garante que, após a validação, a aplicação trabalhará com o tipo de dado correto (number)
+
+[ctx] => É um objeto especial que o Zod fornece dentro da função .transform() ou .refine(), permitindo que você interaja com o processo de validação. Ele é crucial para adicionar mensagens de erro personalizadas quando uma validação falha em uma lógica de transformação.
+
+[regex] => garante que a string recebida esteja no formato esperado.
+data_hora: z.string().regex(/^\d{2}:\d{2}:\d{2}$/, "Formato de data_hora deve ser HH:MM:SS");
+

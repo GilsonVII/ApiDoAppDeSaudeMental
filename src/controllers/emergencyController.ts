@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import * as panicBusiness from '../business/panicBusiness';
 import { AppError } from '../utils/errors';
 import { triggerPanicSchema } from '../validation/emergencySchemas';
+import { Logger } from '../utils/logger';
 
 export const handleTriggerPanic = async (req: Request, res: Response) => {
     try {
@@ -28,7 +29,7 @@ export const handleTriggerPanic = async (req: Request, res: Response) => {
             notifiedContactsCount: result.contacts.length
         });
     } catch (error: any) {
-        console.error('Erro no controller de pânico:', error);
+        Logger.error('Erro no controller de pânico:', error);
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({ error: error.message });
         }

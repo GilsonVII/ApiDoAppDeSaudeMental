@@ -1,5 +1,7 @@
 import { db } from '../connection';
 import { IAgendaEvent, IAgendaOccurrence } from '../../models/AgendaEventModel';
+import { Logger } from '../../utils/logger';
+import { AppError, ForbiddenError, NotFoundError, BadRequestError, InternalServerError } from '../../utils/errors';
 
 type OccurrenceInput = Omit<IAgendaOccurrence, 'id_ocorrencia'>;
 
@@ -8,7 +10,7 @@ export const createAgendaTemplate = async (templateData: Omit<IAgendaEvent, 'id_
         const [id] = await db('EVENTO_AGENDA').insert(templateData);
         return id;
     } catch (error) {
-        console.error("Erro ao criar template de agenda:", error);
+        Logger.error("Erro ao criar template de agenda:", error);
         throw new Error('Erro ao salvar template de agenda.');
     }
 };
@@ -20,7 +22,7 @@ export const createOccurrencesBatch = async (occurrences: OccurrenceInput[]): Pr
         await db.batchInsert('OCORRENCIA_AGENDA', occurrences); 
         return true;
     } catch (error) {
-        console.error("Erro no batch insert de ocorrências:", error);
+        Logger.error("Erro no batch insert de ocorrências:", error);
         throw new Error('Erro ao salvar ocorrências da agenda.');
     }
 };
@@ -31,7 +33,7 @@ export const findOccurrencesByPatientId = async (patientId: number): Promise<IAg
             .where('usuario_id', patientId)
             .orderBy('data_ocorrencia', 'desc');
     } catch (error) {
-        console.error("Erro ao buscar ocorrências por paciente:", error);
+        Logger.error("Erro ao buscar ocorrências por paciente:", error);
         throw new Error('Erro ao buscar ocorrências.');
     }
 };
@@ -41,7 +43,7 @@ export const findTemplateById = async (eventId: number): Promise<IAgendaEvent | 
         const template = await db('EVENTO_AGENDA').where('id_evento', eventId).first();
         return template || null;
     } catch (error) {
-        console.error("Erro ao buscar template por ID:", error);
+        Logger.error("Erro ao buscar template por ID:", error);
         throw new Error('Erro ao buscar template.');
     }
 };
@@ -56,8 +58,8 @@ export const updateOccurrenceStatus = async (occurrenceId: number, status: boole
         if (!updated) throw new Error('Falha ao buscar ocorrência após atualização.');
         return updated;
     } catch (error) {
-        console.error("Erro ao atualizar status da ocorrência:", error);
-        throw new Error('Erro ao atualizar status da ocorrência.');
+        Logger.error("Erro ao atualizar status da ocorrência:", error);
+        throw new InternalServerError('Erro ao atualizar status da ocorrência.');
     }
 };
 
@@ -74,7 +76,7 @@ export const findPendingOccurrencesForCron = async (now: Date): Promise<any[]> =
             .whereRaw("TIME_FORMAT(e.data_hora, '%H:%i') = ?", [currentHour])
             .whereNotNull('u.fcm_token');
     } catch (error) {
-        console.error("Erro ao buscar ocorrências para o cron:", error);
+        Logger.error("Erro ao buscar ocorrências para o cron:", error);
         return [];
     }
 };
@@ -82,8 +84,8 @@ export const findTemplatesByPatientId = async (patientId: number): Promise<IAgen
     try {
         return await db('EVENTO_AGENDA').where('id_paciente', patientId);
     } catch (error) {
-        console.error("Erro ao buscar templates por paciente:", error);
-        throw new Error('Erro ao buscar templates.');
+        Logger.error("Erro ao buscar templates por paciente:", error);
+        throw new InternalServerError('Erro ao buscar templates.');
     }
 };
 
@@ -94,8 +96,8 @@ export const findOccurrenceById = async (occurrenceId: number): Promise<IAgendaO
             .first();
         return occurrence || null;
     } catch (error) {
-        console.error("Erro ao buscar ocorrência por ID:", error);
-        throw new Error('Erro ao buscar ocorrência.');
+        Logger.error("Erro ao buscar ocorrência por ID:", error);
+        throw new InternalServerError('Erro ao buscar ocorrência.');
     }
 };
 
@@ -104,8 +106,8 @@ export const updateTemplate = async (eventId: number, templateData: Partial<Omit
         const count = await db('EVENTO_AGENDA').where('id_evento', eventId).update(templateData);
         return count > 0;
     } catch (error) {
-        console.error("Erro ao atualizar template de agenda:", error);
-        throw new Error('Erro ao atualizar template no banco de dados.');
+        Logger.error("Erro ao atualizar template de agenda:", error);
+        throw new InternalServerError('Erro ao atualizar template no banco de dados.');
     }
 };
 
@@ -114,8 +116,8 @@ export const deleteTemplate = async (eventId: number): Promise<boolean> => {
         const count = await db('EVENTO_AGENDA').where('id_evento', eventId).delete();
         return count > 0;
     } catch (error) {
-        console.error("Erro ao deletar template de agenda:", error);
-        throw new Error('Erro ao deletar template no banco de dados.');
+        Logger.error("Erro ao deletar template de agenda:", error);
+        throw new InternalServerError('Erro ao deletar template no banco de dados.');
     }
 };
 
@@ -124,7 +126,7 @@ export const findOccurrencesByDate = async (patientId: number, date: string): Pr
         return await db('OCORRENCIA_AGENDA')
             .where({ usuario_id: patientId, data_ocorrencia: date });
     } catch (error) {
-        console.error("Erro ao buscar ocorrências por data:", error);
-        throw new Error('Erro ao buscar ocorrências.');
+        Logger.error("Erro ao buscar ocorrências por data:", error);
+        throw new InternalServerError('Erro ao buscar ocorrências.');
     }
 };

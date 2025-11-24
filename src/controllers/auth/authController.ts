@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import * as authBusiness from '../../business/authBusiness';
 import { AppError } from '../../utils/errors';
 import { registerSchema, loginSchema, resetPasswordSchema } from '../../validation/authSchemas';
+import { Logger } from '../../utils/logger';
 
 export const handleRegister = async (req: Request, res: Response) => {
     try {
@@ -19,7 +20,7 @@ export const handleRegister = async (req: Request, res: Response) => {
         return res.status(201).json({ message: "Usuário registrado com sucesso.", userId });
 
     } catch (error: any) {
-        console.error("Erro no controller de registro:", error);
+        Logger.error("Erro no controller de registro:", error);
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({ error: error.message });
         }
@@ -43,7 +44,7 @@ export const handleLogin = async (req: Request, res: Response) => {
         return res.status(200).json({ token });
 
     } catch (error: any) {
-        console.error("Erro no controller de login:", error);
+        Logger.error("Erro no controller de login:", error);
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({ error: error.message });
         }
@@ -67,7 +68,7 @@ export const handlePasswordReset = async (req: Request, res: Response) => {
         return res.status(200).json({ message: 'Senha redefinida com sucesso.' });
 
     } catch (error: any) {
-        console.error("Erro no controller de redefinir senha:", error);
+        Logger.error("Erro no controller de redefinir senha:", error);
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({ error: error.message });
         }

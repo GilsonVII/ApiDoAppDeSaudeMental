@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as agendaBusiness from '../business/agendaBusiness';
 import { AppError } from '../utils/errors';
+import { Logger } from '../utils/logger';
 import { 
     createTemplateSchema, 
     listOccurrencesSchema, 
@@ -31,7 +32,7 @@ export const handleCreateAgendaTemplate = async (req: Request, res: Response) =>
             templateId
         });
     } catch (error: any) {
-        console.error('Erro no controller de criar template:', error);
+        Logger.error('Erro no controller de criar template:', error);
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({ error: error.message });
         }
@@ -60,7 +61,7 @@ export const handleListOccurrences = async (req: Request, res: Response) => {
         return res.status(200).json(occurrences);
         
     } catch (error: any) {
-        console.error('Erro ao listar ocorrências:', error);
+        Logger.error('Erro ao listar ocorrências:', error);
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({ error: error.message });
         }
@@ -93,7 +94,7 @@ export const handleUpdateOccurrenceStatus = async (req: Request, res: Response) 
         return res.status(200).json(updatedOccurrence);
         
     } catch (error: any) {
-        console.error('Erro ao atualizar status da ocorrência:', error);
+        Logger.error('Erro ao atualizar status da ocorrência:', error);
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({ error: error.message });
         }
@@ -113,7 +114,7 @@ export const handleUpdateTemplate = async (req: Request, res: Response) => {
         await agendaBusiness.updateTemplate(loggedInUserId, eventId, payload);
         return res.status(200).json({ message: 'Template atualizado com sucesso.' });
     } catch (error: any) {
-        console.error('Erro ao atualizar template:', error);
+        Logger.error('Erro ao atualizar template:', error);
         if (error.message.includes('Permissão negada') || error.message.includes('Template não encontrado')) {
             return res.status(404).json({ error: error.message });
         }
@@ -132,7 +133,7 @@ export const handleDeleteTemplate = async (req: Request, res: Response) => {
         await agendaBusiness.deleteTemplate(loggedInUserId, eventId);
         return res.status(200).json({ message: 'Template deletado com sucesso.' });
     } catch (error: any) {
-        console.error('Erro ao deletar template:', error);
+        Logger.error('Erro ao deletar template:', error);
         if (error.message.includes('Permissão negada') || error.message.includes('Template não encontrado')) {
             return res.status(404).json({ error: error.message });
         }
@@ -151,7 +152,7 @@ export const handleGetOccurrenceById = async (req: Request, res: Response) => {
         const occurrence = await agendaBusiness.getOccurrenceById(loggedInUserId, occurrenceId);
         return res.status(200).json(occurrence);
     } catch (error: any) {
-        console.error('Erro ao buscar ocorrência:', error);
+        Logger.error('Erro ao buscar ocorrência:', error);
         if (error.message.includes('Permissão negada') || error.message.includes('Ocorrência não encontrada')) {
             return res.status(404).json({ error: error.message });
         }
@@ -172,7 +173,7 @@ export const handleListOccurrencesByDate = async (req: Request, res: Response) =
         const occurrences = await agendaBusiness.listOccurrencesByDate(loggedInUserId, patientId, date);
         return res.status(200).json(occurrences);
     } catch (error: any) {
-        console.error('Erro ao listar ocorrências por data:', error);
+        Logger.error('Erro ao listar ocorrências por data:', error);
         if (error.message.includes('Permissão negada')) {
             return res.status(403).json({ error: error.message });
         }

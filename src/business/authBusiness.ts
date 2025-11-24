@@ -2,7 +2,7 @@ import * as userRepository from '../database/repositories/userRepository';
 import { generateToken } from '../utils/jwt';
 import { hashPassword, comparePassword } from '../utils/bcrypt';
 import { IUser } from '../models/UserModel';
-import { ConflictError, UnauthorizedError } from '../utils/errors';
+import { ConflictError, NotFoundError, UnauthorizedError } from '../utils/errors';
 
 
 type RegisterInput = {
@@ -51,7 +51,7 @@ export const authenticateUser = async (email: string, password: string): Promise
 export const resetPassword = async (email: string, newPassword: string): Promise<boolean> => {
     const user = await userRepository.findUserByEmail(email);
     if (!user) {
-        throw new Error('Usuário não encontrado.');
+        throw new NotFoundError('Usuário não encontrado.');
     }
     const hashedPassword = await hashPassword(newPassword);
     return userRepository.updateUserPassword(user.id_usuario, hashedPassword);
