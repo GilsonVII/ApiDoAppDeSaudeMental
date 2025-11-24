@@ -1,5 +1,6 @@
 import sgMail from '@sendgrid/mail';
 import * as admin from 'firebase-admin';
+import { Logger } from '../utils/logger';
 
 const serviceAccount = require('../config/firebase-service-account.json'); 
 
@@ -13,7 +14,7 @@ const SENDER_EMAIL = process.env.VERIFIED_SENDER_EMAIL;
 if (API_KEY && SENDER_EMAIL) {
     sgMail.setApiKey(API_KEY);
 } else {
-    console.warn("Aviso: Chaves do SendGrid (API ou Email) não definidas no .env. E-mails de pânico serão simulados.");
+    Logger.warn("Aviso: Chaves do SendGrid (API ou Email) não definidas no .env. E-mails de pânico serão simulados.");
 }
 
 interface PanicEmailPayload {
@@ -28,7 +29,7 @@ export const sendPanicEmail = async (payload: PanicEmailPayload) => {
     
     
     if (!API_KEY || !SENDER_EMAIL) {
-        console.error(`[Email Simulado] PÂNICO! Paciente: ${payload.patientName}. Local: ${payload.latitude}, ${payload.longitude}. Notificar: ${payload.contactEmail}`);
+        Logger.error(`[Email Simulado] PÂNICO! Paciente: ${payload.patientName}. Local: ${payload.latitude}, ${payload.longitude}. Notificar: ${payload.contactEmail}`);
         return;
     }
     
@@ -64,9 +65,9 @@ export const sendPanicEmail = async (payload: PanicEmailPayload) => {
 
     try {
         await sgMail.send(msg);
-        console.log(`[Email Service] E-mail de pânico enviado para ${payload.contactEmail}`);
+        Logger.info(`[Email Service] E-mail de pânico enviado para ${payload.contactEmail}`);
     } catch (error) {
-        console.error("Erro ao enviar e-mail pelo SendGrid:", error);
+        Logger.error("Erro ao enviar e-mail pelo SendGrid:", error);
     }
 };
 
@@ -81,9 +82,9 @@ export const sendPushNotification = async (fcmToken: string, title: string, body
 
     try {
         const response = await admin.messaging().send(message);
-        console.log(`[FCM Service] Notificação Push enviada com sucesso para ${fcmToken}:`, response);
+        Logger.info(`[FCM Service] Notificação Push enviada com sucesso para ${fcmToken}:`, response);
     } catch (error) {
-        console.error(`Erro ao enviar FCM para ${fcmToken}:`, error);
+        Logger.error(`Erro ao enviar FCM para ${fcmToken}:`, error);
         
     }
 };

@@ -2,6 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import masterRouter from '../../src/routes'; 
 import { db } from '../../src/database/connection';
+import { Logger } from '../../src/utils/logger';
 
 const app = express();
 app.use(express.json());
@@ -15,7 +16,7 @@ beforeAll(async () => {
     try {
         await db('USUARIO').where('email', 'like', 'jest_user_%').delete();
     } catch (error) {
-        console.error("Erro limpando o banco antes dos testes:", error);
+        Logger.error("Erro limpando o banco antes dos testes:", error);
     }
 });
 
@@ -116,7 +117,7 @@ describe('Fluxo Chave da API (Linha 15 - Teste E2E)', () => {
         expect(Array.isArray(response.body)).toBe(true);
 
         if (response.body.length === 0) {
-            console.error("ALERTA: Nenhuma ocorrência encontrada. Verifique a lógica de datas no agendaBusiness.");
+            Logger.error("ALERTA: Nenhuma ocorrência encontrada. Verifique a lógica de datas no agendaBusiness.");
         }
         expect(response.body.length).toBeGreaterThan(0); 
     });

@@ -1,9 +1,10 @@
 import jwt from 'jsonwebtoken';
+import { Logger } from '../utils/logger';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
-    console.error("ERRO FATAL: JWT_SECRET não definida no .env");
+    Logger.error("ERRO FATAL: JWT_SECRET não definida no .env");
     process.exit(1);
 }
 
