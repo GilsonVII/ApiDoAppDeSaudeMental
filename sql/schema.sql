@@ -71,3 +71,17 @@ CREATE TABLE EVENTO_PANICO (
 
     INDEX idx_panico_usuario_timestamp (usuario_id, timestamp)
 );
+
+CREATE TABLE NOTA_MENSAL (
+    id_nota INT AUTO_INCREMENT PRIMARY KEY,
+    id_paciente INT NOT NULL,           
+    id_autor INT NOT NULL,               
+    mes_referencia VARCHAR(7) NOT NULL,   
+    texto TEXT NOT NULL,                   
+    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_paciente) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (id_autor) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE,
+    
+    INDEX idx_nota_paciente_mes (id_paciente, mes_referencia)
+);

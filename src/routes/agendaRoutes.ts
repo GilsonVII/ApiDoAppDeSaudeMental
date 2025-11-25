@@ -6,7 +6,8 @@ import {
     handleListOccurrences, 
     handleListOccurrencesByDate, 
     handleUpdateOccurrenceStatus,
-    handleUpdateTemplate, 
+    handleUpdateTemplate,
+    handleAddMonthlyNote, 
 } from '../controllers/agendaController';
 import { authMiddleware } from '../middlewares/authMiddleware'; 
 
@@ -21,5 +22,6 @@ agendaRouter.patch('/template/:id_evento', authMiddleware, handleUpdateTemplate)
 agendaRouter.delete('/template/:id_evento', authMiddleware, handleDeleteTemplate);
 agendaRouter.get('/ocorrencias/:id_ocorrencia', authMiddleware, handleGetOccurrenceById);
 agendaRouter.get('/ocorrencias/:id_paciente/data/:data', authMiddleware, handleListOccurrencesByDate);
+agendaRouter.post('/notes', authMiddleware, handleAddMonthlyNote);
 
 export default agendaRouter;

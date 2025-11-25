@@ -184,3 +184,20 @@ export const updateOccurrenceStatus = async (loggedInUserId: number, occurrenceI
 
     return agendaRepository.updateOccurrenceStatus(occurrenceId, status);
 };
+
+export const addMonthlyNote = async (authorId: number, patientId: number, month: string, text: string) => {
+   
+    const hasPermission = await checkPermission(authorId, patientId);
+    
+    if (!hasPermission) {
+
+        throw new ForbiddenError('Permissão negada: Você não tem permissão para deixar notas para este paciente.');
+    }
+
+    return agendaRepository.createMonthlyNote({
+        id_paciente: patientId,
+        id_autor: authorId,
+        mes_referencia: month,
+        texto: text
+    });
+};

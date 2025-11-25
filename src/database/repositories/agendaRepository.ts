@@ -2,6 +2,7 @@ import { db } from '../connection';
 import { IAgendaEvent, IAgendaOccurrence } from '../../models/AgendaEventModel';
 import { Logger } from '../../utils/logger';
 import { AppError, ForbiddenError, NotFoundError, BadRequestError, InternalServerError } from '../../utils/errors';
+import { IMonthlyNote } from '../../models/AgendaEventModel';
 
 type OccurrenceInput = Omit<IAgendaOccurrence, 'id_ocorrencia'>;
 
@@ -128,5 +129,15 @@ export const findOccurrencesByDate = async (patientId: number, date: string): Pr
     } catch (error) {
         Logger.error("Erro ao buscar ocorrências por data:", error);
         throw new InternalServerError('Erro ao buscar ocorrências.');
+    }
+};
+
+export const createMonthlyNote = async (noteData: Omit<IMonthlyNote, 'id_nota' | 'data_criacao'>): Promise<number | null> => {
+    try {
+        const [id] = await db('NOTA_MENSAL').insert(noteData);
+        return id;
+    } catch (error) {
+        console.error("Erro ao criar nota mensal:", error);
+        throw new Error('Erro ao salvar nota mensal.');
     }
 };

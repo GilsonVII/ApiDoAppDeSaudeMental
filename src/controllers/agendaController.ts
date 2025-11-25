@@ -7,6 +7,7 @@ import {
     listOccurrencesSchema, 
     updateStatusSchema 
 } from '../validation/agendaSchemas';
+import { createMonthlyNoteSchema } from '../validation/agendaSchemas';
 
 export const handleCreateAgendaTemplate = async (req: Request, res: Response) => {
     try {
@@ -178,5 +179,33 @@ export const handleListOccurrencesByDate = async (req: Request, res: Response) =
             return res.status(403).json({ error: error.message });
         }
         return res.status(500).json({ error: 'Erro interno ao listar ocorrências.' });
+    }
+};
+
+export const handleAddMonthlyNote = async (req: Request, res: Response) => {
+    try {
+        const authorId = req.user?.id; 
+        if (!authorId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+
+        const validation = createMonthlyNoteSchema.safeParse({ body: req.body });
+        if (!validation.success) {
+            return res.status(400).json({ 
+                error: "Dados inválidos.", 
+                details: validation.error.flatten().fieldErrors 
+            });
+        }
+
+        const { id_paciente, mes_referencia, texto } = validation.data.body;
+
+        const noteId = await agendaBusiness.addMonthlyNote(authorId, id_paciente, mes_referencia, texto);
+        
+        return res.status(201).json({ message: "Nota mensal adicionada com sucesso!", noteId });
+
+    } catch (error: any) {
+        console.error('Erro ao adicionar nota:', error);
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao criar nota.' });
     }
 };

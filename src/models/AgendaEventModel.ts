@@ -19,3 +19,12 @@ export interface IAgendaOccurrence {
     data_ocorrencia: string; 
     status_concluido: boolean;
 }
+
+export interface IMonthlyNote {
+    id_nota: number;
+    id_paciente: number;
+    id_autor: number;
+    mes_referencia: string;
+    texto: string;
+    data_criacao: Date;
+}
