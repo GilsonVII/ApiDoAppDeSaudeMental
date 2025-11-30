@@ -2,7 +2,7 @@ import * as agendaRepository from '../database/repositories/agendaRepository';
 import * as contactRepository from '../database/repositories/contactRepository';
 import { Logger } from '../utils/logger';
 import { IAgendaEvent, AgendaEventType, IAgendaOccurrence } from '../models/AgendaEventModel';
-import { AppError, ForbiddenError, NotFoundError, BadRequestError, InternalServerError } from '../utils/errors';
+import { AppError, ForbiddenError, NotFoundError, BadRequestError } from '../utils/errors';
 
 export interface AgendaTemplatePayload {
     id_paciente: number;
@@ -29,7 +29,6 @@ const checkPermission = async (loggedInUserId: number, patientId: number): Promi
 
 function generateOccurrences(templateId: number, patientId: number, startDateStr: string, endDateStr: string | null | undefined): Omit<IAgendaOccurrence, 'id_ocorrencia'>[] {
     const occurrences: Omit<IAgendaOccurrence, 'id_ocorrencia'>[] = [];
-     
     const startParts = startDateStr.split('-').map(Number);
     const startDate = new Date(startParts[0], startParts[1] - 1, startParts[2], 12, 0, 0);
 
@@ -87,7 +86,7 @@ export const createAgendaTemplate = async (creatorId: number, payload: AgendaTem
     const templateId = await agendaRepository.createAgendaTemplate(templateToSave);
 
     if (!templateId) {
-        throw new InternalServerError('Falha ao criar o template no banco.');
+        throw new Error('Falha ao criar o template no banco.');
     }
 
     try {
@@ -102,7 +101,6 @@ export const createAgendaTemplate = async (creatorId: number, payload: AgendaTem
             await agendaRepository.createOccurrencesBatch(occurrences);
         }
     } catch (error) {
-     
         Logger.error("Erro ao gerar ocorrências (mas template foi criado):", error);
     }
 
@@ -186,18 +184,19 @@ export const updateOccurrenceStatus = async (loggedInUserId: number, occurrenceI
 };
 
 export const addMonthlyNote = async (authorId: number, patientId: number, month: string, text: string) => {
-   
+
     const hasPermission = await checkPermission(authorId, patientId);
     
     if (!hasPermission) {
-
         throw new ForbiddenError('Permissão negada: Você não tem permissão para deixar notas para este paciente.');
     }
+
+    const referenceDate = `${month}-01`;
 
     return agendaRepository.createMonthlyNote({
         id_paciente: patientId,
         id_autor: authorId,
-        mes_referencia: month,
+        mes_referencia: referenceDate,
         texto: text
     });
 };
