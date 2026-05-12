@@ -6,6 +6,7 @@ CREATE TABLE USUARIO (
     email VARCHAR(255) UNIQUE NOT NULL,
     senha_hash VARCHAR(255) NOT NULL,
     nome VARCHAR(255) NOT NULL,
+    genero VARCHAR(50) NULL,
     is_paciente BOOLEAN DEFAULT TRUE,
     is_contato_emergencia BOOLEAN DEFAULT FALSE,
     fcm_token VARCHAR(255) NULL DEFAULT NULL,
