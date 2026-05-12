@@ -26,5 +26,5 @@ export interface IMonthlyNote {
     id_autor: number;
     mes_referencia: string;
     texto: string;
-    data_criacao: Date;
+    data_criacao?: Date;
 }

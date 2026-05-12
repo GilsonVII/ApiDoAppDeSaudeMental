@@ -3,15 +3,7 @@ import { IUser } from '../../models/UserModel';
 import { AppError, ForbiddenError, NotFoundError, BadRequestError, InternalServerError } from '../../utils/errors';
 import { Logger } from '../../utils/logger';
 
-type CreateUserParams = {
-    email: string;
-    senha_hash: string;
-    nome: string;   
-    is_paciente: boolean;  
-    is_contato_emergencia: boolean;
-};
-
-export const createUser = async (userData: CreateUserParams): Promise<number | null> => {
+export const createUser = async (userData: Omit<IUser, 'id_usuario' | 'data_criacao'>): Promise<number | null> => {
     try {
         const [id] = await db('USUARIO').insert(userData);
         return id;
@@ -34,7 +26,7 @@ export const findUserByEmail = async (email: string): Promise<IUser | null> => {
 export const findUserById = async (userId: number): Promise<Omit<IUser, 'senha_hash'> | null> => {
     try {
         const user = await db('USUARIO')
-            .select('id_usuario', 'email', 'nome', 'is_paciente', 'is_contato_emergencia', 'fcm_token')
+            .select('id_usuario', 'email', 'nome', 'genero', 'is_paciente', 'is_contato_emergencia', 'fcm_token', 'settings_json')
             .where('id_usuario', userId)
             .first();
         return user || null;
@@ -56,15 +48,20 @@ export const updateFcmToken = async (userId: number, fcmToken: string): Promise<
     }
 };
 
-export const updateUserProfile = async (userId: number, name: string, isPatient: boolean, isEmergencyContact: boolean): Promise<boolean> => {
+type UpdateProfileData = Partial<Omit<IUser, 'id_usuario' | 'senha_hash' | 'email' | 'data_criacao'>>;
+
+export const updateUserProfile = async (userId: number, updateData: UpdateProfileData): Promise<boolean> => {
     try {
+        const dataToUpdate: any = { ...updateData };
+
+        if (dataToUpdate.settings_json && typeof dataToUpdate.settings_json === 'object') {
+            dataToUpdate.settings_json = JSON.stringify(dataToUpdate.settings_json);
+        }
+
         const count = await db('USUARIO')
             .where('id_usuario', userId)
-            .update({ 
-                nome: name, 
-                is_paciente: isPatient, 
-                is_contato_emergencia: isEmergencyContact 
-            });
+            .update(dataToUpdate);
+
         return count > 0;
     } catch (error) {
         Logger.error("Erro ao atualizar perfil do usuário:", error);

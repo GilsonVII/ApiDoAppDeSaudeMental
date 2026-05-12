@@ -3,6 +3,7 @@ import * as panicBusiness from '../business/panicBusiness';
 import { AppError } from '../utils/errors';
 import { triggerPanicSchema } from '../validation/emergencySchemas';
 import { Logger } from '../utils/logger';
+import { OrigemPanico } from '../models/PanicEventModel'; 
 
 export const handleTriggerPanic = async (req: Request, res: Response) => {
     try {
@@ -19,12 +20,14 @@ export const handleTriggerPanic = async (req: Request, res: Response) => {
             });
         }
         
-        const { latitude, longitude } = validation.data.body;
+        const { latitude, longitude, origem } = validation.data.body;
         
-        const result = await panicBusiness.triggerPanic(userId, { latitude, longitude });
+        const origemPanico: OrigemPanico = origem || 'MANUAL';
+        
+        const result = await panicBusiness.triggerPanic(userId, { latitude, longitude }, origemPanico);
         
         return res.status(201).json({
-            message: "Evento de pânico registrado. Notificações (simuladas) enviadas.",
+            message: "Evento de emergência registrado. Notificações enviadas para a Rede de Apoio.",
             eventId: result.eventId,
             notifiedContactsCount: result.contacts.length
         });

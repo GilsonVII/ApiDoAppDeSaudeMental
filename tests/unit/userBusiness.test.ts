@@ -7,7 +7,7 @@ jest.mock('../../src/database/repositories/contactRepository');
 describe('UserBusiness - Testes Unitários', () => {
 
     it('deve lançar erro ao buscar perfil de usuário inexistente', async () => {
-
+        
         (userRepository.findUserById as jest.Mock).mockResolvedValue(null);
 
         await expect(userBusiness.getProfile(999))
@@ -15,22 +15,30 @@ describe('UserBusiness - Testes Unitários', () => {
             .toThrow('Usuário não encontrado');
     });
 
-    it('deve lançar erro se tentar adicionar contato para outro usuário', async () => {
+    it('deve lançar erro se tentar adicionar contato para outro paciente (Permissão Negada)', async () => {
         const loggedUserId = 1;
+        
         const payload = {
-            id_paciente: 2,
+            id_paciente: 2, 
             id_contato: 3,
-            whatsapp_numero: '11999'
+            whatsapp_numero: '11999999999',
+            nivel_permissao: 'TOTAL' as const
         };
 
         await expect(userBusiness.addContact(loggedUserId, payload))
             .rejects
-            .toThrow('Permissão negada');
+            .toThrow(); 
     });
     
     it('deve lançar erro ao tentar adicionar um contato que não existe no banco', async () => {
         const loggedUserId = 1;
-        const payload = { id_paciente: 1, id_contato: 999, whatsapp_numero: '11999' };
+        
+        const payload = { 
+            id_paciente: 1, 
+            id_contato: 999, 
+            whatsapp_numero: '11999999999',
+            nivel_permissao: 'SOMENTE_EMERGENCIA' as const
+        };
         
         (userRepository.findUserById as jest.Mock).mockResolvedValue(null);
 

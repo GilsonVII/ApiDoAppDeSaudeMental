@@ -1,90 +1,32 @@
-import sgMail from '@sendgrid/mail';
 import * as admin from 'firebase-admin';
-import { Logger } from '../utils/logger';
+import { Logger } from './logger';
 
-const serviceAccount = require('../config/firebase-service-account.json'); 
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
-const API_KEY = process.env.SENDGRID_API_KEY;
-const SENDER_EMAIL = process.env.VERIFIED_SENDER_EMAIL;
-
-if (API_KEY && SENDER_EMAIL) {
-    sgMail.setApiKey(API_KEY);
-} else {
-    Logger.warn("Aviso: Chaves do SendGrid (API ou Email) não definidas no .env. E-mails de pânico serão simulados.");
+try {
+    
+    const serviceAccount = require('../config/firebase-service-account.json');
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+    });
+    Logger.info('[NotificationService] Firebase inicializado com sucesso.');
+} catch (error) {
+   
+    Logger.warn('[NotificationService] Arquivo firebase-service-account.json não encontrado. Push notifications desativadas.');
 }
 
-interface PanicEmailPayload {
-    contactEmail: string;
-    contactName: string;
-    patientName: string;
-    latitude: number;
-    longitude: number;
-}
-
-export const sendPanicEmail = async (payload: PanicEmailPayload) => {
-    
-    
-    if (!API_KEY || !SENDER_EMAIL) {
-        Logger.error(`[Email Simulado] PÂNICO! Paciente: ${payload.patientName}. Local: ${payload.latitude}, ${payload.longitude}. Notificar: ${payload.contactEmail}`);
+export const sendPushNotification = async (token: string, title: string, body: string) => {
+  
+    if (!admin.apps.length) {
+        Logger.warn('[NotificationService] Simulação de envio (Firebase desligado).');
         return;
     }
-    
-    const mapsLink = `https://www.google.com/maps?q=${payload.latitude},${payload.longitude}`;
-
-    const msg = {
-        to: payload.contactEmail,
-        from: {
-            name: 'AlertaMente App', 
-            
-            email: SENDER_EMAIL,    
-        },
-        subject: `🚨 ALERTA DE PÂNICO: Ajuda necessária para ${payload.patientName} 🚨`,
-        html: `
-            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                <h2>ALERTA DE PÂNICO</h2>
-                <p>Olá, ${payload.contactName},</p>
-                <p>O paciente <strong>${payload.patientName}</strong> acionou o botão de pânico pelo App AlertaMente.</p>
-                <p>A localização registrada é:</p>
-                <ul>
-                    <li><strong>Latitude:</strong> ${payload.latitude}</li>
-                    <li><strong>Longitude:</strong> ${payload.longitude}</li>
-                </ul>
-                <p style="background-color: #f4f4f4; padding: 10px;">
-                    <strong><a href="${mapsLink}">Clique aqui para ver a localização no Google Maps</a></strong>
-                </p>
-                <br>
-                <p>Por favor, entre em contato com o paciente ou serviços de emergência imediatamente.</p>
-                <small>AlertaMente App</small>
-            </div>
-        `,
-    };
 
     try {
-        await sgMail.send(msg);
-        Logger.info(`[Email Service] E-mail de pânico enviado para ${payload.contactEmail}`);
+        await admin.messaging().send({
+            token,
+            notification: { title, body }
+        });
+        Logger.info(`[NotificationService] Notificação enviada para ${token}`);
     } catch (error) {
-        Logger.error("Erro ao enviar e-mail pelo SendGrid:", error);
-    }
-};
-
-export const sendPushNotification = async (fcmToken: string, title: string, body: string) => {
-    const message = {
-        notification: {
-            title: title,
-            body: body,  
-        },
-        token: fcmToken 
-    };
-
-    try {
-        const response = await admin.messaging().send(message);
-        Logger.info(`[FCM Service] Notificação Push enviada com sucesso para ${fcmToken}:`, response);
-    } catch (error) {
-        Logger.error(`Erro ao enviar FCM para ${fcmToken}:`, error);
-        
+        Logger.error('[NotificationService] Erro ao enviar notificação:', error);
     }
 };

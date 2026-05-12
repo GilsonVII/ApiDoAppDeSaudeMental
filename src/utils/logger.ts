@@ -4,16 +4,16 @@ export class Logger {
         return new Date().toISOString();
     }
 
-    static info(message: string, ...optionalParams: any[]) {
-        console.log(`[INFO] [${this.getTimestamp()}] ${message}`, ...optionalParams);
+    static info(message: string, ...optionalParams: unknown[]) {
+        console.log(`\x1b[36m[INFO]\x1b[0m [${this.getTimestamp()}] ${message}`, ...optionalParams);
     }
 
-    static warn(message: string, ...optionalParams: any[]) {
-        console.warn(`[WARN] [${this.getTimestamp()}] ⚠️ ${message}`, ...optionalParams);
+    static warn(message: string, ...optionalParams: unknown[]) {
+        console.warn(`\x1b[33m[WARN]\x1b[0m [${this.getTimestamp()}] ⚠️ ${message}`, ...optionalParams);
     }
 
-    static error(message: string, error?: any) {
-        console.error(`[ERROR] [${this.getTimestamp()}] ❌ ${message}`);
+    static error(message: string, error?: unknown) {
+        console.error(`\x1b[31m[ERROR]\x1b[0m [${this.getTimestamp()}] ❌ ${message}`);
         if (error) {
             console.error(error);
         }

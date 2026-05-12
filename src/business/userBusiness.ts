@@ -10,6 +10,7 @@ export const getProfile = async (userId: number): Promise<Omit<IUser, 'senha_has
     if (!user) {
         throw new NotFoundError('Usuário não encontrado');
     }
+
     return user; 
 };
 
@@ -41,12 +42,22 @@ export const deleteContact = async (loggedInUserId: number, relationId: number) 
     return contactRepository.deleteContactRelation(relationId, loggedInUserId);
 };
 
-export const updateProfile = async (userId: number, name: string, isPatient: boolean, isEmergencyContact: boolean) => {
-    return userRepository.updateUserProfile(userId, name, isPatient, isEmergencyContact);
+export const updateProfile = async (userId: number, updateData: Partial<Omit<IUser, 'id_usuario' | 'senha_hash' | 'email' | 'data_criacao'>>) => {
+    
+    return userRepository.updateUserProfile(userId, updateData);
 };
 
 export const searchUserByEmail = async (email: string) => {
     const user = await userRepository.findUserByEmail(email);
-    if (!user) return null;
+    
+    if (!user) {
+        throw new NotFoundError('Nenhum usuário encontrado com este e-mail.');
+    }
 
+    return {
+        id_usuario: user.id_usuario,
+        nome: user.nome,
+        email: user.email,
+        genero: user.genero
+    };
 };

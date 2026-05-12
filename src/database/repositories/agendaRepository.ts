@@ -1,8 +1,7 @@
 import { db } from '../connection';
-import { IAgendaEvent, IAgendaOccurrence } from '../../models/AgendaEventModel';
+import { IAgendaEvent, IAgendaOccurrence, IMonthlyNote } from '../../models/AgendaEventModel';
 import { Logger } from '../../utils/logger';
-import { AppError, ForbiddenError, NotFoundError, BadRequestError, InternalServerError } from '../../utils/errors';
-import { IMonthlyNote } from '../../models/AgendaEventModel';
+import { InternalServerError } from '../../utils/errors';
 
 type OccurrenceInput = Omit<IAgendaOccurrence, 'id_ocorrencia'>;
 
@@ -12,7 +11,7 @@ export const createAgendaTemplate = async (templateData: Omit<IAgendaEvent, 'id_
         return id;
     } catch (error) {
         Logger.error("Erro ao criar template de agenda:", error);
-        throw new Error('Erro ao salvar template de agenda.');
+        throw new InternalServerError('Erro ao salvar template de agenda.');
     }
 };
 
@@ -24,7 +23,7 @@ export const createOccurrencesBatch = async (occurrences: OccurrenceInput[]): Pr
         return true;
     } catch (error) {
         Logger.error("Erro no batch insert de ocorrências:", error);
-        throw new Error('Erro ao salvar ocorrências da agenda.');
+        throw new InternalServerError('Erro ao salvar ocorrências da agenda.');
     }
 };
 
@@ -35,7 +34,7 @@ export const findOccurrencesByPatientId = async (patientId: number): Promise<IAg
             .orderBy('data_ocorrencia', 'desc');
     } catch (error) {
         Logger.error("Erro ao buscar ocorrências por paciente:", error);
-        throw new Error('Erro ao buscar ocorrências.');
+        throw new InternalServerError('Erro ao buscar ocorrências.');
     }
 };
 
@@ -45,7 +44,7 @@ export const findTemplateById = async (eventId: number): Promise<IAgendaEvent | 
         return template || null;
     } catch (error) {
         Logger.error("Erro ao buscar template por ID:", error);
-        throw new Error('Erro ao buscar template.');
+        throw new InternalServerError('Erro ao buscar template.');
     }
 };
 
@@ -56,7 +55,7 @@ export const updateOccurrenceStatus = async (occurrenceId: number, status: boole
             .update({ status_concluido: status });
             
         const updated = await db('OCORRENCIA_AGENDA').where('id_ocorrencia', occurrenceId).first();
-        if (!updated) throw new Error('Falha ao buscar ocorrência após atualização.');
+        if (!updated) throw new InternalServerError('Falha ao buscar ocorrência após atualização.');
         return updated;
     } catch (error) {
         Logger.error("Erro ao atualizar status da ocorrência:", error);
@@ -71,16 +70,17 @@ export const findPendingOccurrencesForCron = async (now: Date): Promise<any[]> =
         return await db('OCORRENCIA_AGENDA as o')
             .join('EVENTO_AGENDA as e', 'o.id_evento', 'e.id_evento')
             .join('USUARIO as u', 'o.usuario_id', 'u.id_usuario')
-            .select('o.id_ocorrencia', 'e.titulo', 'e.descricao', 'u.fcm_token')
+            .select('o.id_ocorrencia', 'e.titulo', 'e.descricao', 'u.fcm_token', 'e.tipo')
             .where('o.data_ocorrencia', currentDay)
             .andWhere('o.status_concluido', false)
-            .whereRaw("TIME_FORMAT(e.data_hora, '%H:%i') = ?", [currentHour])
+            .whereRaw("TIME_FORMAT(e.data_hora, '%H:%i') <= ?", [currentHour])
             .whereNotNull('u.fcm_token');
     } catch (error) {
         Logger.error("Erro ao buscar ocorrências para o cron:", error);
-        return [];
+        return []; 
     }
 };
+
 export const findTemplatesByPatientId = async (patientId: number): Promise<IAgendaEvent[]> => {
     try {
         return await db('EVENTO_AGENDA').where('id_paciente', patientId);
@@ -137,7 +137,7 @@ export const createMonthlyNote = async (noteData: Omit<IMonthlyNote, 'id_nota' |
         const [id] = await db('NOTA_MENSAL').insert(noteData);
         return id;
     } catch (error) {
-        console.error("Erro ao criar nota mensal:", error);
-        throw new Error('Erro ao salvar nota mensal.');
+        Logger.error("Erro ao criar nota mensal:", error); 
+        throw new InternalServerError('Erro ao salvar nota mensal.');
     }
 };

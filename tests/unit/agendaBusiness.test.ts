@@ -18,7 +18,7 @@ describe('AgendaBusiness - Testes Unitários', () => {
             data_hora: '10:00',
             data_inicio: '2025-01-01',
             data_fim: null,
-            tipo: 'GERAL' as any
+            tipo: 'GERAL' as const
         };
 
         (contactRepository.findContactsByPatientId as jest.Mock).mockResolvedValue([
@@ -32,15 +32,14 @@ describe('AgendaBusiness - Testes Unitários', () => {
 
     it('deve criar template e ocorrências se o criador for o próprio paciente', async () => {
         const creatorId = 1;
-        const patientId = 1;
         const payload = {
-            id_paciente: patientId,
+            id_paciente: 1,
             titulo: 'Meu Evento',
             descricao: 'Teste',
             data_hora: '10:00',
             data_inicio: '2025-01-01',
             data_fim: '2025-01-02',
-            tipo: 'GERAL' as any
+            tipo: 'GERAL' as const
         };
 
         (agendaRepository.createAgendaTemplate as jest.Mock).mockResolvedValue(10);

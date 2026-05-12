@@ -19,7 +19,7 @@ describe('AuthBusiness - Testes Unitários', () => {
             .toThrow(ConflictError);
     });
 
-    it('deve lançar UnauthorizedError ao tentar logar com e-mail não cadastrado', async () => {
+    it('deve lançar erro ao tentar logar com e-mail não cadastrado', async () => {
         (userRepository.findUserByEmail as jest.Mock).mockResolvedValue(null);
 
         await expect(authBusiness.authenticateUser('naoexiste@email.com', '123456'))
@@ -27,7 +27,7 @@ describe('AuthBusiness - Testes Unitários', () => {
             .toThrow('Credenciais inválidas.');
     });
 
-    it('deve lançar UnauthorizedError ao tentar logar com senha incorreta', async () => {
+    it('deve lançar erro ao tentar logar com senha incorreta', async () => {
         (userRepository.findUserByEmail as jest.Mock).mockResolvedValue({ 
             id_usuario: 1, email: 'a@a.com', senha_hash: 'hash' 
         });

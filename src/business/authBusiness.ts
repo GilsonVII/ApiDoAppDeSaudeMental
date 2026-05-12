@@ -4,17 +4,18 @@ import { hashPassword, comparePassword } from '../utils/bcrypt';
 import { IUser } from '../models/UserModel';
 import { ConflictError, NotFoundError, UnauthorizedError } from '../utils/errors';
 
-
 type RegisterInput = {
     email: string;
     password: string;
     name: string;
+    genero?: 'MASCULINO' | 'FEMININO' | 'OUTRO' | 'NAO_INFORMADO'; 
     is_patient?: boolean;
     is_emergency_contact?: boolean;
+    fcm_token?: string; 
+    settings_json?: any; 
 };
 
 export const registerNewUser = async (userData: RegisterInput): Promise<number | null> => {
-
     
     const existingUser = await userRepository.findUserByEmail(userData.email);
     if (existingUser) {
@@ -27,8 +28,11 @@ export const registerNewUser = async (userData: RegisterInput): Promise<number |
         email: userData.email,
         senha_hash: hashedPassword,
         nome: userData.name, 
+        genero: userData.genero || 'NAO_INFORMADO', 
         is_paciente: userData.is_patient ?? true, 
         is_contato_emergencia: userData.is_emergency_contact ?? false, 
+        fcm_token: userData.fcm_token || null,
+        settings_json: userData.settings_json ? JSON.stringify(userData.settings_json) : null 
     };
 
     return userRepository.createUser(userToSave);

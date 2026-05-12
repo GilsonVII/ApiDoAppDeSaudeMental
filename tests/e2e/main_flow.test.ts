@@ -20,7 +20,7 @@ beforeAll(async () => {
     }
 });
 
-describe('Fluxo Chave da API (Linha 15 - Teste E2E)', () => {
+describe('Fluxo Chave da API (SafeHome E2E)', () => {
 
     it('deve registrar um novo usuário (POST /v1/auth/register)', async () => {
         const response = await request(app)
@@ -51,8 +51,7 @@ describe('Fluxo Chave da API (Linha 15 - Teste E2E)', () => {
     });
 
     it('deve falhar (401) ao acessar uma rota protegida sem token', async () => {
-        const response = await request(app)
-            .get('/v1/users/me'); 
+        const response = await request(app).get('/v1/users/me'); 
 
         expect(response.status).toBe(401);
         expect(response.body.error).toContain('Token não fornecido');
@@ -73,7 +72,8 @@ describe('Fluxo Chave da API (Linha 15 - Teste E2E)', () => {
             .set('Authorization', `Bearer ${token}`)
             .send({
                 latitude: -23.5505,
-                longitude: -46.6333
+                longitude: -46.6333,
+                origem: 'MANUAL' // V2: Alinhado com o Zod
             });
 
         expect(response.status).toBe(201);
@@ -81,7 +81,6 @@ describe('Fluxo Chave da API (Linha 15 - Teste E2E)', () => {
     });
 
     it('deve criar um template de agenda e gerar ocorrências (POST /v1/agenda/template)', async () => {
-
         const today = new Date();
         const nextWeek = new Date();
         nextWeek.setDate(today.getDate() + 5);
@@ -95,7 +94,7 @@ describe('Fluxo Chave da API (Linha 15 - Teste E2E)', () => {
             .send({
                 id_paciente: testUserId,
                 titulo: "Teste de Template (Jest)",
-                descricao: "Teste E2E da Linha 11",
+                descricao: "Teste E2E da V2",
                 data_hora: "14:00:00",
                 data_inicio: dataInicio, 
                 data_fim: dataFim,      
@@ -115,10 +114,6 @@ describe('Fluxo Chave da API (Linha 15 - Teste E2E)', () => {
 
         expect(response.status).toBe(200);
         expect(Array.isArray(response.body)).toBe(true);
-
-        if (response.body.length === 0) {
-            Logger.error("ALERTA: Nenhuma ocorrência encontrada. Verifique a lógica de datas no agendaBusiness.");
-        }
         expect(response.body.length).toBeGreaterThan(0); 
     });
 });

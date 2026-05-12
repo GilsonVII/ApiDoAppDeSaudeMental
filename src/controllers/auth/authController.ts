@@ -13,10 +13,11 @@ export const handleRegister = async (req: Request, res: Response) => {
                 details: validation.error.flatten().fieldErrors 
             });
         }
+
+        const payload = validation.data.body;
         
-        const { email, password, name, is_patient, is_emergency_contact } = validation.data.body;
+        const userId = await authBusiness.registerNewUser(payload);
         
-        const userId = await authBusiness.registerNewUser({ email, password, name, is_patient, is_emergency_contact });
         return res.status(201).json({ message: "Usuário registrado com sucesso.", userId });
 
     } catch (error: any) {

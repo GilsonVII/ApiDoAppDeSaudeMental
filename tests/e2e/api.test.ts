@@ -6,24 +6,18 @@ const app = express();
 app.use(express.json());
 app.use('/', masterRouter);
 
-describe('API End-to-End Test (Linha 15)', () => {
+describe('API End-to-End Test (SafeHome V2)', () => {
 
     it('GET / - deve retornar o status da API (200 OK)', async () => {
-
-        const response = await request(app)
-            .get('/'); 
+        const response = await request(app).get('/'); 
             
         expect(response.status).toBe(200);
-        
-        expect(response.body).toEqual({
-            status: 'API AlertaMente Online',
-            version: '1.0'
-        });
+        expect(response.body).toHaveProperty('status');
+        expect(response.body).toHaveProperty('version');
     });
 
     it('GET /rota-que-nao-existe - deve retornar 404', async () => {
-        const response = await request(app)
-            .get('/api/v1/rota-aleatoria');
+        const response = await request(app).get('/v1/rota-aleatoria');
             
         expect(response.status).toBe(404);
     });

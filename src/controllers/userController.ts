@@ -38,7 +38,7 @@ export const handleAddContact = async (req: Request, res: Response) => {
             });
         }
         
-        const payload = validation.data.body;
+       const payload = validation.data.body as any;
 
         const relationId = await userBusiness.addContact(loggedInUserId, payload);
         return res.status(201).json({ message: 'Contato adicionado com sucesso.', relationId });
@@ -83,6 +83,9 @@ export const handleUpdateFcmToken = async (req: Request, res: Response) => {
         return res.status(200).json({ message: 'Token de notificação salvo.' });
     } catch (error: any) {
         Logger.error('Erro ao salvar FcmToken:', error);
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         return res.status(500).json({ error: 'Erro interno ao salvar token.' });
     }
 };
@@ -102,9 +105,8 @@ export const handleUpdateProfile = async (req: Request, res: Response) => {
             });
         }
         
-        const { name, is_patient, is_emergency_contact } = validation.data.body;
-
-        await userBusiness.updateProfile(userId, name, is_patient, is_emergency_contact);
+        await userBusiness.updateProfile(userId, validation.data.body);
+        
         return res.status(200).json({ message: 'Perfil atualizado com sucesso.' });
         
     } catch (error: any) {
@@ -128,6 +130,7 @@ export const handleSearchUser = async (req: Request, res: Response) => {
         
         const { email } = validation.data.query;
         const profile = await userBusiness.searchUserByEmail(email);
+        
         if (!profile) {
             return res.status(404).json({ error: 'Usuário não encontrado.' });
         }
@@ -145,7 +148,7 @@ export const handleSearchUser = async (req: Request, res: Response) => {
 export const handleDeleteContact = async (req: Request, res: Response) => {
     try {
         const loggedInUserId = req.user?.id;
-        const relationId = parseInt(req.params.id_relacao, 10);
+        const relationId = parseInt(req.params.id_relacao as string, 10);
 
         if (!loggedInUserId) return res.status(401).json({ error: 'Usuário não autenticado.' });
         if (isNaN(relationId)) return res.status(400).json({ error: 'ID da relação inválido.' });
@@ -154,6 +157,9 @@ export const handleDeleteContact = async (req: Request, res: Response) => {
         return res.status(200).json({ message: 'Contato removido com sucesso.' });
     } catch (error: any) {
         Logger.error('Erro ao deletar contato:', error);
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         return res.status(500).json({ error: 'Erro interno ao deletar contato.' });
     }
 };
