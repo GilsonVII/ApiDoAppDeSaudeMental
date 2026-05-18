@@ -58,6 +58,6 @@ export const createMonthlyNoteSchema = z.object({
     body: z.object({
         id_paciente: z.number({ message: "ID do paciente é obrigatório e deve ser um número." }),
         mes_referencia: z.string().regex(/^\d{4}-\d{2}$/, "O mês deve estar no formato YYYY-MM (ex: 2026-05)."),
-        texto: z.string().min(1, "O texto da nota não pode estar vazio."),
+        texto: z.string().min(1, "O texto da nota não pode estar vazio.").max(500, "A nota pode ter no máximo 500 caracteres."),
     })
 });

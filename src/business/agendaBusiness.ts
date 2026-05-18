@@ -208,3 +208,11 @@ export const addMonthlyNote = async (authorId: number, patientId: number, month:
         texto: text
     });
 };
+
+export const listMonthlyNotes = async (loggedInUserId: number, patientId: number, monthReference: string) => {
+    const hasPermission = await checkPermission(loggedInUserId, patientId, 'READ');
+    if (!hasPermission) {
+        throw new ForbiddenError('Permissão negada para visualizar as notas deste usuário.');
+    }
+    return agendaRepository.findMonthlyNotes(patientId, monthReference);
+};

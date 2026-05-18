@@ -141,3 +141,16 @@ export const createMonthlyNote = async (noteData: Omit<IMonthlyNote, 'id_nota' |
         throw new InternalServerError('Erro ao salvar nota mensal.');
     }
 };
+
+export const findMonthlyNotes = async (patientId: number, monthReference: string): Promise<IMonthlyNote[]> => {
+    // monthReference no formato YYYY-MM. No banco, mes_referencia e salvo como YYYY-MM-01.
+    const referenceDate = `${monthReference}-01`;
+    try {
+        return await db('NOTA_MENSAL')
+            .where({ id_paciente: patientId, mes_referencia: referenceDate })
+            .orderBy('data_criacao', 'desc');
+    } catch (error) {
+        Logger.error("Erro ao buscar notas mensais:", error);
+        throw new InternalServerError('Erro ao buscar notas mensais.');
+    }
+};

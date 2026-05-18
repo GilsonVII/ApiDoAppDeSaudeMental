@@ -84,7 +84,9 @@ CREATE TABLE DISPOSITIVO_IOT (
     id_usuario INT NOT NULL,
     nome VARCHAR(100) NOT NULL, 
     categoria ENUM('GAS', 'LUMINOSIDADE', 'RUIDO', 'PORTA', 'MOVIMENTO', 'LUZ_RGB') NOT NULL,
-    FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE
+    status_ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE,
+    INDEX idx_dispositivo_usuario (id_usuario)
 );
 
 CREATE TABLE TELEMETRIA_IOT (

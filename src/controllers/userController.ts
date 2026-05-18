@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as userBusiness from '../business/userBusiness';
+import * as statsBusiness from '../business/statsBusiness';
 import { AppError } from '../utils/errors';
 import { Logger } from '../utils/logger';
 import { addContactSchema, updateFcmTokenSchema, updateProfileSchema, searchUserSchema } from '../validation/userSchemas';
@@ -20,6 +21,26 @@ export const handleGetMyProfile = async (req: Request, res: Response) => {
             return res.status(error.statusCode).json({ error: error.message });
         }
         return res.status(500).json({ error: 'Erro interno ao buscar perfil.' });
+    }
+};
+
+export const handleGetMyStatus = async (req: Request, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ error: 'Usuário não autenticado.' });
+        }
+
+        // O usuário sempre pode ver o próprio status.
+        const status = await statsBusiness.getUserStatus(userId, userId);
+        return res.status(200).json(status);
+
+    } catch (error: any) {
+        Logger.error('Erro no controller de status:', error);
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao buscar status.' });
     }
 };
 

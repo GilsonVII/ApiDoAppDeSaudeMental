@@ -211,3 +211,48 @@ export const handleAddMonthlyNote = async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'Erro interno ao criar nota.' });
     }
 };
+
+export const handleListTemplates = async (req: Request, res: Response) => {
+    try {
+        const loggedInUserId = req.user?.id;
+        if (!loggedInUserId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+
+        const patientId = parseInt(req.params.id_paciente as string, 10);
+        if (isNaN(patientId)) return res.status(400).json({ error: 'ID do paciente inválido.' });
+
+        const templates = await agendaBusiness.listTemplatesForPatient(loggedInUserId, patientId);
+        return res.status(200).json(templates);
+
+    } catch (error: any) {
+        Logger.error('Erro ao listar templates:', error);
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao listar templates.' });
+    }
+};
+
+export const handleListMonthlyNotes = async (req: Request, res: Response) => {
+    try {
+        const loggedInUserId = req.user?.id;
+        if (!loggedInUserId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+
+        const patientId = parseInt(req.params.id_paciente as string, 10);
+        const monthReference = req.params.mes_referencia as string;
+
+        if (isNaN(patientId)) return res.status(400).json({ error: 'ID do paciente inválido.' });
+        if (!/^\d{4}-\d{2}$/.test(monthReference)) {
+            return res.status(400).json({ error: 'Mês de referência inválido. Use o formato YYYY-MM.' });
+        }
+
+        const notes = await agendaBusiness.listMonthlyNotes(loggedInUserId, patientId, monthReference);
+        return res.status(200).json(notes);
+
+    } catch (error: any) {
+        Logger.error('Erro ao listar notas mensais:', error);
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao listar notas.' });
+    }
+};
