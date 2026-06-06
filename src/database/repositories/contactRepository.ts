@@ -14,6 +14,15 @@ type ContactSummary = {
     fcm_token: string | null       
 };
 
+type MonitoredPatientSummary = {
+    id_relacao: number;
+    id_paciente: number;
+    nome_paciente: string;
+    email_paciente: string;
+    genero: string | null;
+    nivel_permissao: string;
+};
+
 export const createContactRelation = async (data: ContactInput): Promise<number | null> => {
     try {
         const [id] = await db('CONTATO_EMERGENCIA').insert(data);
@@ -42,6 +51,27 @@ export const findContactsByPatientId = async (patientId: number): Promise<Contac
     } catch (error) {
         Logger.error("Erro ao buscar contatos por ID do paciente:", error);
         throw new InternalServerError('Erro ao buscar contatos.');
+    }
+};
+
+export const findPatientsByContactId = async (contactId: number): Promise<MonitoredPatientSummary[]> => {
+    try {
+        const rows = await db('CONTATO_EMERGENCIA as ce')
+            .join('USUARIO as u', 'ce.id_paciente', 'u.id_usuario')
+            .select(
+                'ce.id_relacao',
+                'ce.id_paciente',
+                'ce.nivel_permissao',
+                'u.nome as nome_paciente',
+                'u.email as email_paciente',
+                'u.genero'
+            )
+            .where('ce.id_contato', contactId);
+
+        return rows as MonitoredPatientSummary[];
+    } catch (error) {
+        Logger.error("Erro ao buscar pacientes monitorados pelo contato:", error);
+        throw new InternalServerError('Erro ao buscar pacientes monitorados.');
     }
 };
 

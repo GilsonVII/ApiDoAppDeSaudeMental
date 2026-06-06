@@ -31,6 +31,10 @@ export const listMyContacts = async (loggedInUserId: number) => {
     return contactRepository.findContactsByPatientId(loggedInUserId);
 };
 
+export const listMonitoredPatients = async (loggedInUserId: number) => {
+    return contactRepository.findPatientsByContactId(loggedInUserId);
+};
+
 export const updateFcmToken = async (userId: number, fcmToken: string) => {
     if (!fcmToken) {
         throw new Error('Token FCM não pode ser vazio.');

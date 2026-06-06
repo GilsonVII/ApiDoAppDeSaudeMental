@@ -92,6 +92,25 @@ export const handleListContacts = async (req: Request, res: Response) => {
     }
 };
 
+export const handleListMonitored = async (req: Request, res: Response) => {
+    try {
+        const loggedInUserId = req.user?.id;
+        if (!loggedInUserId) {
+            return res.status(401).json({ error: 'Usuário não autenticado.' });
+        }
+
+        const patients = await userBusiness.listMonitoredPatients(loggedInUserId);
+        return res.status(200).json(patients);
+
+    } catch (error: any) {
+        Logger.error('Erro ao listar pacientes monitorados:', error);
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao listar pacientes monitorados.' });
+    }
+};
+
 export const handleUpdateFcmToken = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;
