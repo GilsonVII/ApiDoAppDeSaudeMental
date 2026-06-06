@@ -7,6 +7,7 @@ import { Logger } from '../utils/logger';
 import { TelemetryInput, CreateDeviceInput, UpdateDeviceInput } from '../validation/iotSchemas';
 import { checkSensoryOverload } from './automationBusiness';
 import { ForbiddenError, NotFoundError, ConflictError } from '../utils/errors';
+import * as contactRepository from '../database/repositories/contactRepository';
 
 export const processTelemetry = async (userId: number, data: TelemetryInput) => {
     
@@ -61,6 +62,21 @@ export const processTelemetry = async (userId: number, data: TelemetryInput) => 
     return { telemetryId, status: 'processed' };
 };
 
+
+
+const checkPermission = async (loggedInUserId: number, patientId: number): Promise<boolean> => {
+    if (loggedInUserId === patientId) return true;
+    try {
+        const contacts = await contactRepository.findContactsByPatientId(patientId);
+        return contacts.some(c => c.id_contato === loggedInUserId);
+    } catch (e) {
+        Logger.error('[iotBusiness] Erro ao checar permissão de IoT:', e);
+        return false;
+    }
+};
+
+
+
 // ============================================================
 // Gerenciamento de Dispositivos IoT
 // ============================================================
@@ -70,6 +86,20 @@ export const processTelemetry = async (userId: number, data: TelemetryInput) => 
  */
 export const listDevices = async (userId: number) => {
     return deviceRepository.findDevicesByUserId(userId);
+};
+
+export const listDevicesForPatient = async (loggedInUserId: number, patientId: number) => {
+    const patient = await userRepository.findUserById(patientId);
+    if (!patient) {
+        throw new NotFoundError('Paciente não encontrado.');
+    }
+
+    const hasPermission = await checkPermission(loggedInUserId, patientId);
+    if (!hasPermission) {
+        throw new ForbiddenError('Permissão negada para ver os dispositivos deste usuário.');
+    }
+
+    return deviceRepository.findDevicesByUserId(patientId);
 };
 
 /**

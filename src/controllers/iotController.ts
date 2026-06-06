@@ -57,6 +57,30 @@ export const handleListDevices = async (req: Request, res: Response) => {
     }
 };
 
+export const handleListDevicesForPatient = async (req: Request, res: Response) => {
+    try {
+        const loggedInUserId = req.user?.id;
+        if (!loggedInUserId) {
+            return res.status(401).json({ error: 'Usuário não autenticado.' });
+        }
+
+        const patientId = parseInt(req.params.id_paciente as string, 10);
+        if (isNaN(patientId)) {
+            return res.status(400).json({ error: 'ID do paciente inválido.' });
+        }
+
+        const devices = await iotBusiness.listDevicesForPatient(loggedInUserId, patientId);
+        return res.status(200).json(devices);
+
+    } catch (error: any) {
+        Logger.error(`[iotController] Erro ao listar dispositivos do paciente: ${error.message}`);
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao listar dispositivos do paciente.' });
+    }
+};
+
 export const handleRegisterDevice = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;
