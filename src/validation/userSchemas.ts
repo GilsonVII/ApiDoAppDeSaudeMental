@@ -19,12 +19,12 @@ export const updateFcmTokenSchema = z.object({
 export const updateProfileSchema = z.object({
     body: z.object({
         nome: z.string().min(2, "Nome deve ter no mínimo 2 caracteres.").optional(),
+        bio: z.string().max(255, "A bio pode ter no máximo 255 caracteres.").nullable().optional(),
         is_paciente: z.boolean().optional(),
         is_contato_emergencia: z.boolean().optional(),
         genero: z.enum(['MASCULINO', 'FEMININO', 'OUTRO', 'NAO_INFORMADO'], {
             message: "Gênero inválido."
         }).optional(),
-       
         settings_json: z.record(z.string(), z.any()).optional()
     })
 }).refine((data: any) => Object.keys(data.body || {}).length > 0, {
