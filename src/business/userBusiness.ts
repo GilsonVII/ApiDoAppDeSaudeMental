@@ -15,16 +15,15 @@ export const getProfile = async (userId: number): Promise<Omit<IUser, 'senha_has
 };
 
 export const addContact = async (loggedInUserId: number, payload: Omit<IContactRelation, 'id_relacao'>): Promise<number | null> => {
-    if (loggedInUserId !== payload.id_paciente) {
-        throw new ForbiddenError('Permissão negada: Você só pode adicionar contatos para si mesmo.');
-    }
-    
-    const contactUser = await userRepository.findUserById(payload.id_contato);
+    // Garante que o paciente é sempre o usuário logado (vem do token).
+    const dadosContato = { ...payload, id_paciente: loggedInUserId };
+
+    const contactUser = await userRepository.findUserById(dadosContato.id_contato);
     if (!contactUser) {
         throw new NotFoundError('Usuário de contato não encontrado.');
     }
 
-    return contactRepository.createContactRelation(payload);
+    return contactRepository.createContactRelation(dadosContato);
 };
 
 export const listMyContacts = async (loggedInUserId: number) => {
