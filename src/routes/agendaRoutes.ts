@@ -10,8 +10,10 @@ import {
     handleAddMonthlyNote,
     handleListTemplates,
     handleListMonthlyNotes,
+    handleDeleteMonthlyNote
 } from '../controllers/agendaController';
 import { authMiddleware } from '../middlewares/authMiddleware';
+
 
 const agendaRouter = Router();
 
@@ -30,5 +32,6 @@ agendaRouter.patch('/ocorrencias/:id_ocorrencia/status', authMiddleware, handleU
 // --- Notas mensais ---
 agendaRouter.post('/notes', authMiddleware, handleAddMonthlyNote);
 agendaRouter.get('/notes/:id_paciente/:mes_referencia', authMiddleware, handleListMonthlyNotes);
+agendaRouter.delete('/notes/:id_nota', authMiddleware, handleDeleteMonthlyNote);
 
 export default agendaRouter;

@@ -216,3 +216,21 @@ export const listMonthlyNotes = async (loggedInUserId: number, patientId: number
     }
     return agendaRepository.findMonthlyNotes(patientId, monthReference);
 };
+
+export const deleteMonthlyNote = async (loggedInUserId: number, noteId: number) => {
+    const note = await agendaRepository.findMonthlyNoteById(noteId);
+    if (!note) {
+        throw new NotFoundError('Nota não encontrada.');
+    }
+
+    if (note.id_autor === loggedInUserId) {
+        return agendaRepository.deleteMonthlyNote(noteId);
+    }
+
+    const hasPermission = await checkPermission(loggedInUserId, note.id_paciente, 'WRITE');
+    if (!hasPermission) {
+        throw new ForbiddenError('Permissão negada para excluir esta nota.');
+    }
+
+    return agendaRepository.deleteMonthlyNote(noteId);
+};

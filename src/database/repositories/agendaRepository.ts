@@ -154,3 +154,23 @@ export const findMonthlyNotes = async (patientId: number, monthReference: string
         throw new InternalServerError('Erro ao buscar notas mensais.');
     }
 };
+
+export const findMonthlyNoteById = async (noteId: number): Promise<IMonthlyNote | null> => {
+    try {
+        const note = await db('NOTA_MENSAL').where('id_nota', noteId).first();
+        return note || null;
+    } catch (error) {
+        Logger.error("Erro ao buscar nota por ID:", error);
+        throw new InternalServerError('Erro ao buscar nota.');
+    }
+};
+
+export const deleteMonthlyNote = async (noteId: number): Promise<boolean> => {
+    try {
+        const count = await db('NOTA_MENSAL').where('id_nota', noteId).delete();
+        return count > 0;
+    } catch (error) {
+        Logger.error("Erro ao deletar nota mensal:", error);
+        throw new InternalServerError('Erro ao deletar nota no banco de dados.');
+    }
+};
