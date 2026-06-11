@@ -6,6 +6,7 @@ import { InternalServerError } from '../../utils/errors';
 type ContactInput = Omit<IContactRelation, 'id_relacao'>;
 
 type ContactSummary = {
+    id_relacao: number,
     id_contato: number,
     whatsapp_numero: string,
     nome_contato: string,
@@ -38,6 +39,7 @@ export const findContactsByPatientId = async (patientId: number): Promise<Contac
         const rows = await db('CONTATO_EMERGENCIA as ce')
             .join('USUARIO as u', 'ce.id_contato', 'u.id_usuario')
             .select(
+                'ce.id_relacao',
                 'ce.id_contato', 
                 'ce.whatsapp_numero', 
                 'ce.nivel_permissao', 
