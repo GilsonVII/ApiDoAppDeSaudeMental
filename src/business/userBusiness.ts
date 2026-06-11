@@ -26,6 +26,24 @@ export const addContact = async (loggedInUserId: number, payload: Omit<IContactR
     return contactRepository.createContactRelation(dadosContato);
 };
 
+export const updateContactPermission = async (
+    loggedInUserId: number,
+    relationId: number,
+    nivelPermissao: string
+) => {
+    const relation = await contactRepository.findContactRelationById(relationId);
+    if (!relation) {
+        throw new NotFoundError('Relação de contato não encontrada.');
+    }
+ 
+    // Só o paciente (dono da relação) pode mudar a permissão dos seus contatos.
+    if (relation.id_paciente !== loggedInUserId) {
+        throw new ForbiddenError('Você só pode editar permissões dos seus próprios contatos.');
+    }
+ 
+    return contactRepository.updateContactPermission(relationId, nivelPermissao);
+};
+
 export const listMyContacts = async (loggedInUserId: number) => {
     return contactRepository.findContactsByPatientId(loggedInUserId);
 };

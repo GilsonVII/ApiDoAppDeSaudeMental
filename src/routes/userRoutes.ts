@@ -8,7 +8,8 @@ import {
     handleUpdateFcmToken,
     handleUpdateProfile,
     handleSearchUser,
-    handleDeleteContact
+    handleDeleteContact,
+    handleUpdateContactPermission
 } from '../controllers/userController';
 import { authMiddleware } from '../middlewares/authMiddleware';
 
@@ -23,5 +24,6 @@ userRouter.post('/contact', authMiddleware, handleAddContact);
 userRouter.get('/contacts', authMiddleware, handleListContacts);
 userRouter.get('/monitored', authMiddleware, handleListMonitored);
 userRouter.delete('/contact/:id_relacao', authMiddleware, handleDeleteContact);
+userRouter.patch('/contact/:id_relacao', authMiddleware, handleUpdateContactPermission);
 
 export default userRouter;

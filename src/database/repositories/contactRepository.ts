@@ -86,3 +86,28 @@ export const deleteContactRelation = async (relationId: number, patientId: numbe
         throw new InternalServerError('Erro ao deletar relação de contato.');
     }
 };
+
+export const findContactRelationById = async (relationId: number): Promise<IContactRelation | null> => {
+    try {
+        const relation = await db('CONTATO_EMERGENCIA').where('id_relacao', relationId).first();
+        return relation || null;
+    } catch (error) {
+        Logger.error("Erro ao buscar relação de contato por ID:", error);
+        throw new InternalServerError('Erro ao buscar relação de contato.');
+    }
+};
+ 
+export const updateContactPermission = async (
+    relationId: number,
+    nivelPermissao: string
+): Promise<boolean> => {
+    try {
+        const count = await db('CONTATO_EMERGENCIA')
+            .where('id_relacao', relationId)
+            .update({ nivel_permissao: nivelPermissao });
+        return count > 0;
+    } catch (error) {
+        Logger.error("Erro ao atualizar permissão do contato:", error);
+        throw new InternalServerError('Erro ao atualizar permissão no banco de dados.');
+    }
+};

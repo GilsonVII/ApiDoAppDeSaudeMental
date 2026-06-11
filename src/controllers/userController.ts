@@ -73,6 +73,32 @@ export const handleAddContact = async (req: Request, res: Response) => {
     }
 };
 
+export const handleUpdateContactPermission = async (req: Request, res: Response) => {
+    try {
+        const loggedInUserId = req.user?.id;
+        const relationId = parseInt(req.params.id_relacao as string, 10);
+        const { nivel_permissao } = req.body;
+ 
+        if (!loggedInUserId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+        if (isNaN(relationId)) return res.status(400).json({ error: 'ID da relação inválido.' });
+ 
+        const niveisValidos = ['TOTAL', 'MODERADO', 'SOMENTE_EMERGENCIA'];
+        if (!niveisValidos.includes(nivel_permissao)) {
+            return res.status(400).json({ error: 'Nível de permissão inválido.' });
+        }
+ 
+        await userBusiness.updateContactPermission(loggedInUserId, relationId, nivel_permissao);
+        return res.status(200).json({ message: 'Permissão atualizada com sucesso.' });
+ 
+    } catch (error: any) {
+        Logger.error('Erro ao atualizar permissão do contato:', error);
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao atualizar permissão.' });
+    }
+};
+
 export const handleListContacts = async (req: Request, res: Response) => {
     try {
         const loggedInUserId = req.user?.id;
