@@ -123,6 +123,20 @@ export const registerDevice = async (userId: number, data: CreateDeviceInput) =>
     return { deviceId, status: 'created' };
 };
 
+export const deleteDevice = async (userId: number, deviceId: string) => {
+    const device = await deviceRepository.findDeviceById(deviceId);
+    if (!device) {
+        throw new NotFoundError('Dispositivo não encontrado.');
+    }
+    if (device.id_usuario !== userId) {
+        throw new ForbiddenError('Você não tem permissão para remover este dispositivo.');
+    }
+ 
+    await deviceRepository.deleteDevice(deviceId);
+    Logger.info(`[iotBusiness] Dispositivo ${deviceId} removido pelo usuário ${userId}.`);
+    return { deviceId, status: 'deleted' };
+};
+
 /**
  * Atualiza um dispositivo (nome / status ativo). Garante que o dispositivo
  * pertence ao usuario logado antes de alterar.

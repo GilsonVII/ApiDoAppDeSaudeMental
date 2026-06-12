@@ -108,6 +108,30 @@ export const handleRegisterDevice = async (req: Request, res: Response) => {
     }
 };
 
+export const handleDeleteDevice = async (req: Request, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ error: 'Usuário não autenticado.' });
+        }
+ 
+        const deviceId = req.params.id_dispositivo as string;
+        if (!deviceId) {
+            return res.status(400).json({ error: 'ID do dispositivo é obrigatório.' });
+        }
+ 
+        const result = await iotBusiness.deleteDevice(userId, deviceId);
+        return res.status(200).json(result);
+ 
+    } catch (error: any) {
+        Logger.error(`[iotController] Erro ao deletar dispositivo: ${error.message}`);
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
+        return res.status(500).json({ error: 'Erro interno ao deletar dispositivo IoT.' });
+    }
+};
+
 export const handleUpdateDevice = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;

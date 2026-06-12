@@ -45,6 +45,18 @@ export const createDevice = async (deviceData: IIotDevice): Promise<string> => {
     }
 };
 
+export const deleteDevice = async (deviceId: string): Promise<boolean> => {
+    try {
+        const count = await db('DISPOSITIVO_IOT')
+            .where('id_dispositivo', deviceId)
+            .delete();
+        return count > 0;
+    } catch (error) {
+        Logger.error('Erro ao deletar dispositivo IoT:', error);
+        throw new InternalServerError('Erro ao deletar dispositivo IoT.');
+    }
+};
+
 /**
  * Atualiza um dispositivo (nome e/ou status ativo).
  */
