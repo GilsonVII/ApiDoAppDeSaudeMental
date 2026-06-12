@@ -122,10 +122,21 @@ export const deleteTemplate = async (eventId: number): Promise<boolean> => {
     }
 };
 
-export const findOccurrencesByDate = async (patientId: number, date: string): Promise<IAgendaOccurrence[]> => {
+export const findOccurrencesByDate = async (patientId: number, date: string): Promise<any[]> => {
     try {
-        return await db('OCORRENCIA_AGENDA')
-            .where({ usuario_id: patientId, data_ocorrencia: date });
+        return await db('OCORRENCIA_AGENDA as o')
+            .join('EVENTO_AGENDA as e', 'o.id_evento', 'e.id_evento')
+            .select(
+                'o.id_ocorrencia',
+                'o.id_evento',
+                'o.usuario_id',
+                'o.data_ocorrencia',
+                'o.status_concluido',
+                'e.titulo',
+                'e.tipo',
+                'e.data_hora'
+            )
+            .where({ 'o.usuario_id': patientId, 'o.data_ocorrencia': date });
     } catch (error) {
         Logger.error("Erro ao buscar ocorrências por data:", error);
         throw new InternalServerError('Erro ao buscar ocorrências.');
