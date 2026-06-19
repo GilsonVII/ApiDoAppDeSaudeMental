@@ -9,7 +9,6 @@ try {
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
         serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
     } else {
-
         const serviceAccountPath = path.resolve(__dirname, '..', '..', 'firebase-service-account.json');
         serviceAccount = require(serviceAccountPath);
     }
@@ -22,7 +21,14 @@ try {
     Logger.warn('[NotificationService] Credenciais do Firebase não encontradas. Push notifications desativadas.');
 }
 
-export const sendPushNotification = async (token: string, title: string, body: string) => {
+// data é opcional. ATENÇÃO: o FCM exige que TODO valor em `data` seja string.
+// Quem chama é responsável por converter números/booleanos para string.
+export const sendPushNotification = async (
+    token: string,
+    title: string,
+    body: string,
+    data?: Record<string, string>
+) => {
     if (!admin.apps.length) {
         Logger.warn('[NotificationService] Simulação de envio (Firebase desligado).');
         return;
@@ -32,6 +38,7 @@ export const sendPushNotification = async (token: string, title: string, body: s
         await admin.messaging().send({
             token,
             notification: { title, body },
+            ...(data ? { data } : {}),
         });
         Logger.info(`[NotificationService] Notificação enviada para ${token}`);
     } catch (error) {

@@ -1,11 +1,16 @@
 import { Router } from 'express';
-import { handleTriggerPanic } from '../controllers/emergencyController';
+import {
+    handleTriggerPanic,
+    handleGetIncomingPanics,
+    handleResolvePanic,
+} from '../controllers/emergencyController';
 import { authMiddleware } from '../middlewares/authMiddleware';
-import { handleGetPanicLogs } from '../controllers/emergencyController';
 
 const emergencyRouter = Router();
 
 emergencyRouter.post('/panic/trigger', authMiddleware, handleTriggerPanic);
-emergencyRouter.get('/panic/logs/:id_paciente', authMiddleware, handleGetPanicLogs);
+
+emergencyRouter.get('/panic/incoming', authMiddleware, handleGetIncomingPanics);
+emergencyRouter.patch('/panic/:id/resolve', authMiddleware, handleResolvePanic);
 
 export default emergencyRouter;

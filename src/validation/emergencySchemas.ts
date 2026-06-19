@@ -9,3 +9,11 @@ export const triggerPanicSchema = z.object({
         }).optional()
     })
 });
+
+export const resolvePanicSchema = z.object({
+    params: z.object({
+        id: z.coerce.number({ message: "ID do incidente inválido." })
+            .int("ID do incidente deve ser um inteiro.")
+            .positive("ID do incidente deve ser positivo.")
+    })
+});
